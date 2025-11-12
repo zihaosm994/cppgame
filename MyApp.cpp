@@ -6,7 +6,7 @@
 #include <QStandardItemModel>
 #include <QMessageBox>
 #include "plot.h"
-#include<QTextStream>
+#include <QTextStream>
 std::vector<std::string> plot_1Text = {
     "洛琪希:............",
     "明明有好好提醒自己...还是踩到了魔法阵陷阱.....",
@@ -15,15 +15,13 @@ std::vector<std::string> plot_1Text = {
     "我目前呆着的封闭空间,\n只有两个定向转移的魔法阵不知道通往何处",
     "......在这个传闻中最危险的转移迷宫里,我还能活着回去吗......",
     "......还能顺利救出鲁迪的母亲吗......",
-    "......上次和爸爸妈妈约好至少20年回家一趟来着......"
-};
+    "......上次和爸爸妈妈约好至少20年回家一趟来着......"};
 std::string plot_1ImagePath = ":/images/plot_1BG.jpg";
 std::vector<std::string> plot_2Text = {
     "鲁迪:冰结领域!",
     "原本充斥着哥布林血腥味和吼叫声的迷宫在一瞬间变成冰窟,\n魔物都在瞬间被晶莹透亮的冰块封住......",
     "鲁迪:洛琪希师傅......!你没事真是太好了.....",
-    "洛琪希:咦?"
-};
+    "洛琪希:咦?"};
 std::string plot_2ImagePath = ":/images/plot_2BG.png";
 
 MyApp::MyApp(QWidget *parent)
@@ -35,8 +33,12 @@ MyApp::MyApp(QWidget *parent)
     ui->setupUi(this);
     this->setWindowTitle("转移迷宫历险记");
     this->setFixedSize(800, 600);
-    updateBackground();
-    createGameButtons();
+
+    // 初始化StackedWidget
+    setupStackedWidget();
+
+    // 显示主菜单
+    showMainMenu();
 }
 
 MyApp::~MyApp()
@@ -44,18 +46,61 @@ MyApp::~MyApp()
     delete ui;
 }
 
+void MyApp::setupStackedWidget()
+{
+    // 创建StackedWidget
+    stackedWidget = new QStackedWidget(this);
+    stackedWidget->setGeometry(0, 0, 800, 600);
+
+    // 创建主菜单Widget
+    createMainMenuWidget();
+
+    // 创建剧情Widget
+    plotWidget = new Plot(this);
+    connect(plotWidget, &Plot::plotFinished, this, &MyApp::onPlotFinished);
+
+    // 创建游戏Widget
+    gameWidget = new GameWindow(this);
+    connect(gameWidget, &GameWindow::pass_1, this, [this]()
+            {
+        _passData_1.isPass = true;
+        numOfMagicCrystal += 1145; });
+    connect(gameWidget, &GameWindow::pass_2, this, [this]()
+            {
+        _passData_2.isPass = true;
+        numOfMagicCrystal += 114514; });
+    connect(gameWidget, &GameWindow::gameFinished, this, &MyApp::onGameFinished);
+
+    // 添加到StackedWidget
+    stackedWidget->addWidget(mainMenuWidget); // index 0
+    stackedWidget->addWidget(plotWidget);     // index 1
+    stackedWidget->addWidget(gameWidget);     // index 2
+}
+
+void MyApp::createMainMenuWidget()
+{
+    mainMenuWidget = new QWidget(this);
+    mainMenuWidget->setFixedSize(800, 600);
+
+    // 设置背景
+    updateBackground();
+
+    // 创建按钮
+    createGameButtons();
+}
+
 void MyApp::updateBackground()
 {
     // 加载背景图片
     QPixmap bg(":/images/Background.png");
     // 按比例缩放至填满窗口（可能裁剪边缘）
-    QPixmap scaledBg = bg.scaled(this->size(), Qt::KeepAspectRatioByExpanding);
+    QPixmap scaledBg = bg.scaled(mainMenuWidget->size(), Qt::KeepAspectRatioByExpanding);
     // 创建调色板并设置背景
     QPalette palette;
     palette.setBrush(QPalette::Window, scaledBg);
-    this->setPalette(palette);
+    mainMenuWidget->setPalette(palette);
     // 启用自动填充背景
-    this->setAutoFillBackground(true);
+    mainMenuWidget->setAutoFillBackground(true);
 }
 
 // 创建游戏按钮
@@ -68,7 +113,7 @@ void MyApp::createGameButtons()
         {Store, {0.85, 0.7}}};
     for (const auto &config : buttonConfig)
     {
-        QPushButton *button = new QPushButton(this);
+        QPushButton *button = new QPushButton(mainMenuWidget);
         // 设置按钮通用样式
         button->setFocusPolicy(Qt::NoFocus);
         button->setStyleSheet(R"(
@@ -86,11 +131,11 @@ void MyApp::createGameButtons()
         QPushButton:pressed { background: #4A6B9C; }             //鼠标按下时的背景颜色
     )");
         // 设置按钮大小和位置
-        const int btnWidth = width() * 0.25; // 按钮宽度
-        const int btnHeight = height() * 0.08;
-        const int xPos = width() * config.second.first - btnWidth / 2;    // 按钮x坐标
-        const int yPos = height() * config.second.second - btnHeight / 2; // 按钮y坐标
-        button->setGeometry(xPos, yPos, btnWidth, btnHeight);             // 设置按钮位置和大小
+        const int btnWidth = mainMenuWidget->width() * 0.25; // 按钮宽度
+        const int btnHeight = mainMenuWidget->height() * 0.08;
+        const int xPos = mainMenuWidget->width() * config.second.first - btnWidth / 2;    // 按钮x坐标
+        const int yPos = mainMenuWidget->height() * config.second.second - btnHeight / 2; // 按钮y坐标
+        button->setGeometry(xPos, yPos, btnWidth, btnHeight);                             // 设置按钮位置和大小
         // 按钮点击事件
         switch (config.first)
         {
@@ -197,32 +242,17 @@ void MyApp::onStartGameClicked()
 
     if (selectionDialog.exec() == QDialog::Accepted)
     {
-        // 如果选择近处的魔法阵, 则先创建剧情ui
-        if(levelCombo->currentIndex() == 0){
-         Plot *plot = new Plot(this, &plot_1Text, plot_1ImagePath);
-        plot->setAttribute(Qt::WA_DeleteOnClose);
-        connect(plot, &Plot::destroyed, this, [this]()
-                {
-               GameWindow *gameWindow = new GameWindow(this, &_data);
-        gameWindow->show();
-        connect(gameWindow, &GameWindow::pass_1, this, [=](){
-            _passData_1.isPass = true;
-            numOfMagicCrystal += 1145;
-        }); });
-        plot->show();}
-        else{
-            GameWindow *gameWindow = new GameWindow(this, &_data);
-            gameWindow->show();
-            connect(gameWindow, &GameWindow::pass_2, this, [=](){
-                // 创建剧情ui
-            Plot *plot = new Plot(this, &plot_2Text, plot_2ImagePath);
-            plot->setAttribute(Qt::WA_DeleteOnClose);
-            plot->show();
-            _passData_2.isPass = true;
-            numOfMagicCrystal += 114514;
-        });
-    
-    }
+        // 如果选择近处的魔法阵, 则先显示剧情
+        if (levelCombo->currentIndex() == 0)
+        {
+            // 先显示剧情，剧情结束后显示游戏
+            showPlot(&plot_1Text, plot_1ImagePath);
+        }
+        else
+        {
+            // 直接显示游戏
+            showGame(&_data);
+        }
     }
 }
 void MyApp::onExitGameClicked()
@@ -326,7 +356,8 @@ void MyApp::onStoreClicked()
     storeDialog.exec();
 }
 
-void MyApp::saveData(){
+void MyApp::saveData()
+{
     QFile file("data.txt");
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
@@ -335,17 +366,17 @@ void MyApp::saveData(){
     }
     QTextStream out(&file);
     out << numOfMagicCrystal << "\n";
-    out << _playerData <<"\n";
-    out <<_weaponData_1<<"\n";
-    out <<_weaponData_2<<"\n";
-    //存储通关数据将布尔变量转换为整数
+    out << _playerData << "\n";
+    out << _weaponData_1 << "\n";
+    out << _weaponData_2 << "\n";
+    // 存储通关数据将布尔变量转换为整数
     out << static_cast<int>(_passData_1.isPass) << "\n";
     out << static_cast<int>(_passData_2.isPass) << "\n";
     // 关闭文件
     file.close();
- 
 }
-void MyApp::loadData(){
+void MyApp::loadData()
+{
     QFile file("data.txt");
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
@@ -357,7 +388,7 @@ void MyApp::loadData(){
     in >> _playerData;
     in >> _weaponData_1;
     in >> _weaponData_2;
-    //读取布尔变量
+    // 读取布尔变量
     int isPass1, isPass2;
     in >> isPass1 >> isPass2;
     _passData_1.isPass = static_cast<bool>(isPass1);
@@ -370,4 +401,48 @@ void MyApp::closeEvent(QCloseEvent *event)
     // 保存数据到文件
     saveData();
     event->accept(); // 允许关闭事件
+}
+
+// 页面切换槽函数实现
+void MyApp::showMainMenu()
+{
+    stackedWidget->setCurrentIndex(0);
+}
+
+void MyApp::showPlot(std::vector<std::string> *textList, std::string bgPath)
+{
+    // 重置并设置剧情内容
+    plotWidget->reset();
+    plotWidget->setPlotContent(textList, bgPath);
+    // 切换到剧情页面
+    stackedWidget->setCurrentIndex(1);
+}
+
+void MyApp::showGame(GameData *data)
+{
+    // 设置游戏数据
+    gameWidget->setGameData(data);
+    // 切换到游戏页面
+    stackedWidget->setCurrentIndex(2);
+}
+
+void MyApp::onPlotFinished()
+{
+    // 剧情结束后，显示游戏
+    showGame(&_data);
+}
+
+void MyApp::onGameFinished()
+{
+    // 游戏结束后，根据关卡判断是否显示剧情2
+    if (_data.level == 2 && _passData_2.isPass)
+    {
+        // 第二关通关后显示剧情2
+        showPlot(&plot_2Text, plot_2ImagePath);
+    }
+    else
+    {
+        // 返回主菜单
+        showMainMenu();
+    }
 }

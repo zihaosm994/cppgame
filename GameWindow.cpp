@@ -10,53 +10,78 @@
 因为需要交互, 玩家的移动和攻击在gameWindow中实现, Enemy的移动和攻击必须各自实现, 需要传入部分游戏数据
 */
 
-GameWindow::GameWindow(QWidget *parent, GameData *_data) : QMainWindow(parent), ui(new Ui_GameWindow), gameData(_data)
+GameWindow::GameWindow(QWidget *parent) : QWidget(parent), gameData(nullptr)
 {
-    if (gameData == nullptr)
+    // 设置固定大小
+    setFixedSize(800, 600);
+    // 加载图片
+    initPicture();
+
+    // 初始化定时器（但不启动）
+    movementTimer = new QTimer(this);
+    goblinTimer = new QTimer(this);
+    undeadMageTimer = new QTimer(this);
+    deadTimer = new QTimer(this);
+    attackCD = new QTimer(this);
+    updateTimer = new QTimer(this);
+    updateDropTimer = new QTimer(this);
+    bgmSound = new QSoundEffect(this);
+}
+
+void GameWindow::setGameData(GameData *_data)
+{
+    if (_data == nullptr)
     {
         return;
     }
-    ui->setupUi(this);
-    setWindowTitle("一个魔物房间");
-    // 设置窗口固定比例
 
-    setMinimumSize(800, 600);
-    setMaximumSize(800, 600);
-    // 加载图片
-    initPicture();
+    gameData = _data;
+
+    // 重置游戏状态
+    reset();
+
     // 初始化玩家数据
+    if (player)
+    {
+        delete player;
+    }
     player = new Player(Player::Roxy, gameData->playerData.generatepos);
     player->setHP(gameData->playerData.hp);
     player->setWeapon(new Weapon(gameData->playerData.weaponData.level, gameData->playerData.weaponData.type));
-    movementTimer = new QTimer(this);
+
+    // 断开旧连接并重新连接定时器
+    disconnect(movementTimer, nullptr, this, nullptr);
     connect(movementTimer, &QTimer::timeout, this, [this]()
             { handleMovement(gameData->playerData.step, gameData->playerData.step * 7 / 10); });
     movementTimer->start(16);
+
     // 生成敌人,用两个定时器
-    goblinTimer = new QTimer(this);
+    disconnect(goblinTimer, nullptr, this, nullptr);
     connect(goblinTimer, &QTimer::timeout, this, [this]()
             { generateEnemy(Enemy::Goblin, &gameData->enemyData[0].generatePos); });
     goblinTimer->start(gameData->enemyData[0].generateF);
-    undeadMageTimer = new QTimer(this);
+
+    disconnect(undeadMageTimer, nullptr, this, nullptr);
     connect(undeadMageTimer, &QTimer::timeout, this, [this]()
             { generateEnemy(Enemy::UndeadMage, &gameData->enemyData[1].generatePos); });
     undeadMageTimer->start(gameData->enemyData[1].generateF);
 
-    deadTimer = new QTimer(this);
+    disconnect(deadTimer, nullptr, this, nullptr);
     connect(deadTimer, &QTimer::timeout, this, &GameWindow::handleEnemyDead);  // 连接定时器和处理敌人死亡的函数
     connect(deadTimer, &QTimer::timeout, this, &GameWindow::handlePlayerDead); // 连接定时器和处理玩家死亡的函数
     deadTimer->start(500);
 
-    attackCD = new QTimer(this);
+    disconnect(attackCD, nullptr, this, nullptr);
     connect(attackCD, &QTimer::timeout, this, &GameWindow::handlePlayerAttack);
     attackCD->start(player->getWeapon()->getCoolDownCD());
+
     // 定时绘图
-    updateTimer = new QTimer(this);
+    disconnect(updateTimer, nullptr, this, nullptr);
     connect(updateTimer, &QTimer::timeout, this, [this]()
             { this->update(); });
     updateTimer->start(16);
 
-    updateDropTimer = new QTimer(this); // 用于处理掉落物的定时器
+    disconnect(updateDropTimer, nullptr, this, nullptr);
     connect(updateDropTimer, &QTimer::timeout, this, [this]()
             { generateEnemy(Enemy::drop_healing, &gameData->enemyData[3].generatePos); });
     connect(updateDropTimer, &QTimer::timeout, this, [this]()
@@ -64,25 +89,35 @@ GameWindow::GameWindow(QWidget *parent, GameData *_data) : QMainWindow(parent), 
     connect(updateDropTimer, &QTimer::timeout, this, [this]()
             { generateEnemy(Enemy::drop_speed, &gameData->enemyData[5].generatePos); });
     updateDropTimer->start(gameData->enemyData[3].generateF);
+
     enemies.clear();
+    goblinCount = 0;
+    undeadMageCount = 0;
+
     // 初始化障碍物
     createMapCache(&gameData->grid);
     Enemy::attackTarget = player;
+
     // 创建更高分辨率的网格
     std::vector<std::vector<int>> highResGrid(200, std::vector<int>(150, 0));
     // 将原始网格映射到高分辨率网格
-    for (int i = 0; i < gameData->grid.size(); i++) {
-        for (int j = 0; j < gameData->grid[i].size(); j++) {
+    for (int i = 0; i < gameData->grid.size(); i++)
+    {
+        for (int j = 0; j < gameData->grid[i].size(); j++)
+        {
             // 计算在高分辨率网格中对应的区域
             int startX = i * 200 / 80;
             int startY = j * 150 / 60;
             int endX = (i + 1) * 200 / 80;
             int endY = (j + 1) * 150 / 60;
-            
+
             // 填充对应区域
-            for (int x = startX; x < endX; x++) {
-                for (int y = startY; y < endY; y++) {
-                    if (x < 200 && y < 150) {
+            for (int x = startX; x < endX; x++)
+            {
+                for (int y = startY; y < endY; y++)
+                {
+                    if (x < 200 && y < 150)
+                    {
                         highResGrid[x][y] = gameData->grid[i][j];
                     }
                 }
@@ -91,51 +126,131 @@ GameWindow::GameWindow(QWidget *parent, GameData *_data) : QMainWindow(parent), 
     }
     // 将高分辨率网格传递给Enemy
     Enemy::grid = highResGrid;
-    // 初始化子弹池
-    Bullet::initBulletsPool(500);
+
+    // 初始化子弹池（只在第一次初始化）
+    if (Bullet::bulletsPool.empty())
+    {
+        Bullet::initBulletsPool(500);
+    }
 
     // 初始化背景音乐
-    bgmSound = new QSoundEffect(this);
     bgmSound->setSource(QUrl("qrc:/audio/bgm.wav")); // 注意：QSoundEffect最好使用WAV格式
     bgmSound->setLoopCount(QSoundEffect::Infinite);
     bgmSound->setVolume(0.3f); // 设置音量，范围0.0-1.0
 
     // 使用QTimer延迟一小段时间后再播放音乐
-    QTimer::singleShot(500, this, [this]() {
+    QTimer::singleShot(500, this, [this]()
+                       {
         if (bgmSound && bgmSound->status() == QSoundEffect::Ready) {
             bgmSound->play();
-        } 
-    });
+        } });
 }
-GameWindow::~GameWindow()
+
+void GameWindow::reset()
 {
-    delete ui;
-    delete player; // 释放玩家指针
+    // 停止所有定时器
+    stopGame();
+
+    // 清理所有游戏对象
+    if (player)
+    {
+        delete player;
+        player = nullptr;
+    }
+
     for (Enemy *enemy : enemies)
     {
-        delete enemy; // 释放敌人指针
+        delete enemy;
     }
+    enemies.clear();
+
     for (Bullet *bullet : bullets)
     {
         Bullet::deleteBullet(bullet);
     }
-    // 清空子弹池
-    for (Bullet *bullet : Bullet::bulletsPool)
+    bullets.clear();
+
+    for (Enemy *enemy : enemyDeadList)
     {
-        delete bullet;
+        delete enemy;
     }
-    Bullet::bulletsPool.clear();
+    enemyDeadList.clear();
+
+    for (Enemy *enemy : dropList)
+    {
+        delete enemy;
+    }
+    dropList.clear();
+
+    magicCircleList.clear();
+    keyPressed.clear();
+    goblinCount = 0;
+    undeadMageCount = 0;
+}
+
+void GameWindow::stopGame()
+{
+    // 停止所有定时器
+    if (movementTimer)
+        movementTimer->stop();
+    if (goblinTimer)
+        goblinTimer->stop();
+    if (undeadMageTimer)
+        undeadMageTimer->stop();
+    if (deadTimer)
+        deadTimer->stop();
+    if (attackCD)
+        attackCD->stop();
+    if (updateTimer)
+        updateTimer->stop();
+    if (updateDropTimer)
+        updateDropTimer->stop();
+
+    // 停止背景音乐
+    if (bgmSound && bgmSound->isPlaying())
+    {
+        bgmSound->stop();
+    }
+}
+GameWindow::~GameWindow()
+{
+    if (player)
+    {
+        delete player; // 释放玩家指针
+        player = nullptr;
+    }
+    for (Enemy *enemy : enemies)
+    {
+        delete enemy; // 释放敌人指针
+    }
+    enemies.clear();
+
+    for (Bullet *bullet : bullets)
+    {
+        Bullet::deleteBullet(bullet);
+    }
+    bullets.clear();
+
+    // 注意：不要清空子弹池！bulletsPool是静态成员，会被复用
+    // 子弹池应该在程序结束时由操作系统自动回收
+
     for (Enemy *enemy : enemyDeadList)
     {
         delete enemy; // 释放敌人指针
     }
+    enemyDeadList.clear();
+
     for (Enemy *enemy : dropList)
     {
         delete enemy; // 释放敌人指针
     }
-    if (bgmSound) {
+    dropList.clear();
+
+    if (bgmSound)
+    {
         bgmSound->stop();
         delete bgmSound;
+        bgmSound = nullptr;
     }
 }
 
@@ -173,7 +288,7 @@ void GameWindow::initPicture()
 }
 void GameWindow::paintEvent(QPaintEvent *event)
 {
-    QMainWindow::paintEvent(event);
+    QWidget::paintEvent(event);
 
     QPainter painter(this);
     // painter.setRenderHint(QPainter::Antialiasing);
@@ -504,10 +619,10 @@ void GameWindow::handlePlayerDead()
 {
     if (gameData->level == 1 && player && player->getHp() <= 0)
     {
-        deadTimer->stop();
+        stopGame();
         QMessageBox::information(this, "成功逃脱", "好险,差一点就死透了"); // 显示游戏结束消息
-        this->close();
-        this->deleteLater();
+        emit pass_1();
+        emit gameFinished();
     }
     else if (gameData->level == 2 && player && player->getHp() <= 100)
     {
@@ -523,14 +638,12 @@ void GameWindow::handlePlayerDead()
             it = bullets.erase(it);
         }
         handleEnemyDead();
-        deadTimer->stop();
-        goblinTimer->stop();
-        undeadMageTimer->stop();
-        attackCD->stop();
-        // 窗口3过秒后关闭
+        stopGame();
+        // 3秒后发送通关信号
         QTimer::singleShot(3000, this, [this]()
-                           { emit pass_2(); 
-                            this->close();this->deleteLater(); });
+                           {
+                            emit pass_2();
+                            emit gameFinished(); });
     }
 }
 
@@ -633,12 +746,13 @@ void GameWindow::attackByDrop()
 
 void GameWindow::closeEvent(QCloseEvent *event)
 {
-    if (bgmSound) {
+    if (bgmSound)
+    {
         bgmSound->stop();
     }
-    
-    QMainWindow::closeEvent(event);
-    
+
+    QWidget::closeEvent(event);
+
     // 在事件循环的下一个周期删除自己
     this->deleteLater();
 }

@@ -24,21 +24,25 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         MyApp.ui
-        GameWindow.ui
-        plot.ui
+
+
         Character.h
         findpath.h
-        GameWindow.h
+
         MyApp.h
-        plot.h
+
         Character.cpp
         Data.cpp
         Data.h
         findpath.cpp
-        GameWindow.cpp
+
         MyApp.cpp
-        plot.cpp
+
         resources.qrc
+        plot.cpp
+        plot.h
+        GameWindow.cpp
+        GameWindow.h
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET Game APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
