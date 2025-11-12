@@ -1,0 +1,34 @@
+<RCC>
+    <qresource prefix="/">
+        <file>audio/bgm.wav</file>
+        <file>images/Background.png</file>
+        <file>images/drop_attack.png</file>
+        <file>images/drop_healing.png</file>
+        <file>images/drop_speed.png</file>
+        <file>images/FireBall.png</file>
+        <file>images/floor.png</file>
+        <file>images/goblin.png</file>
+        <file>images/goblin1.png</file>
+        <file>images/goblin2.png</file>
+        <file>images/goblin3.png</file>
+        <file>images/goblin4.png</file>
+        <file>images/IceBall.png</file>
+        <file>images/MagicCircle.png</file>
+        <file>images/Obstacle.png</file>
+        <file>images/plot_1BG.jpg</file>
+        <file>images/plot_2BG.png</file>
+        <file>images/RockBall.png</file>
+        <file>images/RoxyWhole.png</file>
+        <file>images/UndeadMage.gif</file>
+        <file>images/UndeadMage.png</file>
+        <file>images/roxy/backStand.png</file>
+        <file>images/roxy/backWalk1.png</file>
+        <file>images/roxy/backWalk2.png</file>
+        <file>images/roxy/facingLeft.png</file>
+        <file>images/roxy/facingRight.png</file>
+        <file>images/roxy/LeftWalk1.png</file>
+        <file>images/roxy/LeftWalk2.png</file>
+        <file>images/roxy/RightWalk1.png</file>
+        <file>images/roxy/RightWalk2.png</file>
+    </qresource>
+</RCC>
