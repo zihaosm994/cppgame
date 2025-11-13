@@ -28,6 +28,8 @@ public:
     void reset();
     // 停止游戏（停止所有定时器和音乐）
     void stopGame();
+    // 清理按键状态（在返回主菜单时调用）
+    void clearKeyState();
 
     QList<QRect> getObstaclesList() const { return obstacles; };
     QList<Enemy *> getEnemiesList() const { return enemies; };

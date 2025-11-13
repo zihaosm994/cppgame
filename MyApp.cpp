@@ -26,7 +26,8 @@ std::string plot_2ImagePath = ":/images/plot_2BG.png";
 
 MyApp::MyApp(QWidget *parent)
     : QMainWindow(parent),
-      ui(new Ui_MyApp)
+      ui(new Ui_MyApp),
+      isPlotBeforeGame(false)
 
 {
     loadData();
@@ -58,7 +59,7 @@ void MyApp::setupStackedWidget()
     // 创建剧情Widget
     plotWidget = new Plot(this);
     connect(plotWidget, &Plot::plotFinished, this, &MyApp::onPlotFinished);
-
+`
     // 创建游戏Widget
     gameWidget = new GameWindow(this);
     connect(gameWidget, &GameWindow::pass_1, this, [this]()
@@ -406,11 +407,25 @@ void MyApp::closeEvent(QCloseEvent *event)
 // 页面切换槽函数实现
 void MyApp::showMainMenu()
 {
+    // 确保游戏已停止
+    gameWidget->stopGame();
+    // 清理按键状态，避免残留
+    gameWidget->clearKeyState();
+    // 切换到主菜单
     stackedWidget->setCurrentIndex(0);
 }
 
-void MyApp::showPlot(std::vector<std::string> *textList, std::string bgPath)
+void MyApp::showPlot(std::vector<std::string> *textList, std::string bgPath, bool beforeGame)
 {
+    // 如果是游戏后的剧情，确保游戏已停止
+    if (!beforeGame)
+    {
+        gameWidget->stopGame();
+    }
+
+    // 记录剧情是在游戏前还是游戏后
+    isPlotBeforeGame = beforeGame;
+
     // 重置并设置剧情内容
     plotWidget->reset();
     plotWidget->setPlotContent(textList, bgPath);
@@ -428,8 +443,17 @@ void MyApp::showGame(GameData *data)
 
 void MyApp::onPlotFinished()
 {
-    // 剧情结束后，显示游戏
-    showGame(&_data);
+    // 根据标志判断剧情结束后的行为
+    if (isPlotBeforeGame)
+    {
+        // 如果是游戏前的剧情，则显示游戏
+        showGame(&_data);
+    }
+    else
+    {
+        // 如果是游戏后的剧情，则返回主菜单
+        showMainMenu();
+    }
 }
 
 void MyApp::onGameFinished()
@@ -437,8 +461,8 @@ void MyApp::onGameFinished()
     // 游戏结束后，根据关卡判断是否显示剧情2
     if (_data.level == 2 && _passData_2.isPass)
     {
-        // 第二关通关后显示剧情2
-        showPlot(&plot_2Text, plot_2ImagePath);
+        // 第二关通关后显示剧情2（传入false表示这是游戏后的剧情）
+        showPlot(&plot_2Text, plot_2ImagePath, false);
     }
     else
     {

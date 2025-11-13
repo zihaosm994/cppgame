@@ -37,14 +37,45 @@ void GameWindow::setGameData(GameData *_data)
 
     gameData = _data;
 
-    // 重置游戏状态
-    reset();
+    // 先停止所有定时器和音乐
+    stopGame();
 
-    // 初始化玩家数据
+    // 清理游戏对象（但不清空keyPressed，保留按键状态）
     if (player)
     {
         delete player;
+        player = nullptr;
     }
+
+    for (Enemy *enemy : enemies)
+    {
+        delete enemy;
+    }
+    enemies.clear();
+
+    for (Bullet *bullet : bullets)
+    {
+        Bullet::deleteBullet(bullet);
+    }
+    bullets.clear();
+
+    for (Enemy *enemy : enemyDeadList)
+    {
+        delete enemy;
+    }
+    enemyDeadList.clear();
+
+    for (Enemy *enemy : dropList)
+    {
+        delete enemy;
+    }
+    dropList.clear();
+
+    magicCircleList.clear();
+    goblinCount = 0;
+    undeadMageCount = 0;
+
+    // 初始化玩家数据
     player = new Player(Player::Roxy, gameData->playerData.generatepos);
     player->setHP(gameData->playerData.hp);
     player->setWeapon(new Weapon(gameData->playerData.weaponData.level, gameData->playerData.weaponData.type));
@@ -90,10 +121,6 @@ void GameWindow::setGameData(GameData *_data)
             { generateEnemy(Enemy::drop_speed, &gameData->enemyData[5].generatePos); });
     updateDropTimer->start(gameData->enemyData[3].generateF);
 
-    enemies.clear();
-    goblinCount = 0;
-    undeadMageCount = 0;
-
     // 初始化障碍物
     createMapCache(&gameData->grid);
     Enemy::attackTarget = player;
@@ -133,6 +160,9 @@ void GameWindow::setGameData(GameData *_data)
         Bullet::initBulletsPool(500);
     }
 
+    // 暂时禁用背景音乐以避免加载卡顿
+    // TODO: 可以添加加载过场动画后再启用
+    /*
     // 初始化背景音乐
     bgmSound->setSource(QUrl("qrc:/audio/bgm.wav")); // 注意：QSoundEffect最好使用WAV格式
     bgmSound->setLoopCount(QSoundEffect::Infinite);
@@ -144,6 +174,7 @@ void GameWindow::setGameData(GameData *_data)
         if (bgmSound && bgmSound->status() == QSoundEffect::Ready) {
             bgmSound->play();
         } });
+    */
 }
 
 void GameWindow::reset()
@@ -183,7 +214,8 @@ void GameWindow::reset()
     dropList.clear();
 
     magicCircleList.clear();
-    keyPressed.clear();
+    // 注意：不清空keyPressed，避免按键状态丢失导致人物卡死
+    // keyPressed.clear();
     goblinCount = 0;
     undeadMageCount = 0;
 }
@@ -211,6 +243,12 @@ void GameWindow::stopGame()
     {
         bgmSound->stop();
     }
+}
+
+void GameWindow::clearKeyState()
+{
+    // 清空按键状态，避免按键残留
+    keyPressed.clear();
 }
 GameWindow::~GameWindow()
 {
@@ -620,9 +658,12 @@ void GameWindow::handlePlayerDead()
     if (gameData->level == 1 && player && player->getHp() <= 0)
     {
         stopGame();
-        QMessageBox::information(this, "成功逃脱", "好险,差一点就死透了"); // 显示游戏结束消息
         emit pass_1();
-        emit gameFinished();
+        // 延迟发送gameFinished信号，避免在stopGame后立即切换导致问题
+        QTimer::singleShot(100, this, [this]()
+                           {
+            QMessageBox::information(this, "成功逃脱", "好险,差一点就死透了");
+            emit gameFinished(); });
     }
     else if (gameData->level == 2 && player && player->getHp() <= 100)
     {
@@ -639,11 +680,10 @@ void GameWindow::handlePlayerDead()
         }
         handleEnemyDead();
         stopGame();
-        // 3秒后发送通关信号
+        emit pass_2();
+        // 延迟发送gameFinished信号
         QTimer::singleShot(3000, this, [this]()
-                           {
-                            emit pass_2();
-                            emit gameFinished(); });
+                           { emit gameFinished(); });
     }
 }
 

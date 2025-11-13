@@ -33,6 +33,8 @@ private:
     Plot *plotWidget;              // 剧情页面
     GameWindow *gameWidget;        // 游戏页面
 
+    bool isPlotBeforeGame; // 标记剧情是在游戏前(true)还是游戏后(false)
+
     void setupStackedWidget();   // 初始化StackedWidget
     void createMainMenuWidget(); // 创建主菜单Widget
     void updateBackground();
@@ -55,11 +57,11 @@ private:
     void onStoreClicked();
 
     // 页面切换槽函数
-    void showMainMenu();                                                   // 显示主菜单
-    void showPlot(std::vector<std::string> *textList, std::string bgPath); // 显示剧情
-    void showGame(GameData *data);                                         // 显示游戏
-    void onPlotFinished();                                                 // 剧情结束
-    void onGameFinished();                                                 // 游戏结束
+    void showMainMenu();                                                                           // 显示主菜单
+    void showPlot(std::vector<std::string> *textList, std::string bgPath, bool beforeGame = true); // 显示剧情
+    void showGame(GameData *data);                                                                 // 显示游戏
+    void onPlotFinished();                                                                         // 剧情结束
+    void onGameFinished();                                                                         // 游戏结束
 
     // 数据板块
     GameData _data;
