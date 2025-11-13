@@ -59,7 +59,7 @@ void MyApp::setupStackedWidget()
     // 创建剧情Widget
     plotWidget = new Plot(this);
     connect(plotWidget, &Plot::plotFinished, this, &MyApp::onPlotFinished);
-`
+
     // 创建游戏Widget
     gameWidget = new GameWindow(this);
     connect(gameWidget, &GameWindow::pass_1, this, [this]()
