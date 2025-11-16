@@ -592,13 +592,17 @@ void GameWindow::handleEnemyDead()
     if (enemies.isEmpty() && goblinCount == gameData->enemyData[0].totalNum && undeadMageCount == gameData->enemyData[1].totalNum)
     {
         deadTimer->stop();
+        stopGame();
         QMessageBox::information(this, "消灭了所有敌人", "这里也没有出口....");
         if (gameData->level == 1)
         {
             emit pass_1();
         }
-        this->close();
-        this->deleteLater();
+        else if (gameData->level == 2)
+        {
+            emit pass_2();
+        }
+        emit gameFinished();
         return;
     }
     if (enemies.isEmpty())
@@ -659,11 +663,9 @@ void GameWindow::handlePlayerDead()
     {
         stopGame();
         emit pass_1();
-        // 延迟发送gameFinished信号，避免在stopGame后立即切换导致问题
-        QTimer::singleShot(100, this, [this]()
-                           {
-            QMessageBox::information(this, "成功逃脱", "好险,差一点就死透了");
-            emit gameFinished(); });
+        // 先显示消息框，然后发送gameFinished信号
+        QMessageBox::information(this, "成功逃脱", "好险,差一点就死透了");
+        emit gameFinished();
     }
     else if (gameData->level == 2 && player && player->getHp() <= 100)
     {
