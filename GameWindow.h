@@ -9,6 +9,7 @@
 #include <QColor>
 #include "Character.h"
 #include "Data.h"
+#include "npc.h"
 #include <QKeyEvent>
 #include <QSet>
 #include <QTimer>
@@ -75,6 +76,13 @@ private:
     QList<QRect> magicCircleList = {}; // 魔法阵列表
     QList<Enemy *> dropList = {};      // 掉落物列表
     std::vector<QPixmap> dropImage;    // 0Health,1Attack,2Speed
+
+    // NPC相关
+    QList<NPC*> npcList = {};          // NPC列表
+    std::vector<QPixmap> npcImage;     // NPC图片（使用goblin图片）
+    void handleNPCInteraction();       // 处理NPC交互
+    void updateQuestProgress(QuestType type, int amount = 1); // 更新任务进度
+
     QPixmap loadAndProcessImage(const std::string &imagePath, int width, int height);
     QTimer *updateDropTimer; // 用于处理掉落物的定时器
 
@@ -97,4 +105,5 @@ signals:
     void pass_1();       // 第一关通关信号
     void pass_2();       // 第二关通关信号
     void gameFinished(); // 游戏结束信号（统一的）
+    void crystalReward(int amount); // 魔法水晶奖励信号
 };

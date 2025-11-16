@@ -84,6 +84,10 @@ void MyApp::setupStackedWidget()
         _passData_2.isPass = true;
         numOfMagicCrystal += 114514; });
     connect(gameWidget, &GameWindow::gameFinished, this, &MyApp::onGameFinished);
+    // 连接NPC任务奖励信号
+    connect(gameWidget, &GameWindow::crystalReward, this, [this](int amount) {
+        numOfMagicCrystal += amount;
+    });
 
     // 创建商店Widget
     storeWidget = new Store(this);

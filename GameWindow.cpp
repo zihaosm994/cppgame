@@ -2,6 +2,7 @@
 #include <QPoint>
 #include <vector>
 #include <QMessageBox> // Ensure this include is present for QMessageBox
+#include <QDebug>
 /*
 生成玩家在gameWindow的构造函数中初始化, player构造函数只负责初始化默认的动画, 其他性质由gameData初始化.
 生成敌人在generateEnemy函数中初始化并赋值, 敌人构造函数只负责动画和移动,自动发动攻击, 但移动频率, 攻击cd,攻击伤害由gameData初始化.
@@ -109,8 +110,13 @@ void GameWindow::setGameData(GameData *_data)
 
     // 定时绘图
     disconnect(updateTimer, nullptr, this, nullptr);
-    connect(updateTimer, &QTimer::timeout, this, [this]()
-            { this->update(); });
+    connect(updateTimer, &QTimer::timeout, this, [this]() {
+        // 更新NPC动画
+        for (NPC* npc : npcList) {
+            npc->updateAnimation();
+        }
+        this->update();
+    });
     updateTimer->start(16);
 
     disconnect(updateDropTimer, nullptr, this, nullptr);
@@ -159,6 +165,24 @@ void GameWindow::setGameData(GameData *_data)
     if (Bullet::bulletsPool.empty())
     {
         Bullet::initBulletsPool(500);
+    }
+
+    // 初始化NPC（在关卡1中添加一个NPC）
+    if (gameData->level == 1) {
+        // 创建NPC（位置在地图中央偏右，坐标需要放大2倍）
+        NPC* questNPC = new NPC(QPoint(600, 400), "哥布林商人", this);
+        questNPC->setGreeting("你好，勇敢的冒险者！");
+
+        // 添加任务：击杀5个敌人
+        Quest killQuest(1, "清理威胁", "击杀5个敌人来保护这片区域", KillEnemies, 5, 50);
+        questNPC->addQuest(killQuest);
+
+        // 连接任务奖励信号 - 发送到MyApp处理
+        connect(questNPC, &NPC::rewardClaimed, this, [this](int questId, int crystals) {
+            emit crystalReward(crystals);
+        });
+
+        npcList.append(questNPC);
     }
 
     // 暂时禁用背景音乐以避免加载卡顿
@@ -213,6 +237,13 @@ void GameWindow::reset()
         delete enemy;
     }
     dropList.clear();
+
+    // 清理NPC
+    for (NPC* npc : npcList)
+    {
+        delete npc;
+    }
+    npcList.clear();
 
     magicCircleList.clear();
     // 注意：不清空keyPressed，避免按键状态丢失导致人物卡死
@@ -324,6 +355,12 @@ void GameWindow::initPicture()
     dropImage.push_back(loadAndProcessImage(":/images/drop_healing.png", 80, 80));                         // 掉落物图片（放大2倍）
     dropImage.push_back(loadAndProcessImage(":/images/drop_attack.png", 80, 80));                          // 掉落物图片（放大2倍）
     dropImage.push_back(loadAndProcessImage(":/images/drop_speed.png", 80, 80));                           // 掉落物图片（放大2倍）
+
+    // NPC图片（使用goblin图片）
+    npcImage.push_back(loadAndProcessImage(":/images/goblin1.png", 80, 80));                               // NPC图片1
+    npcImage.push_back(loadAndProcessImage(":/images/goblin2.png", 80, 80));                               // NPC图片2
+    npcImage.push_back(loadAndProcessImage(":/images/goblin3.png", 80, 80));                               // NPC图片3
+    npcImage.push_back(loadAndProcessImage(":/images/goblin4.png", 80, 80));                               // NPC图片4
 }
 void GameWindow::paintEvent(QPaintEvent *event)
 {
@@ -371,6 +408,20 @@ void GameWindow::paintEvent(QPaintEvent *event)
             painter.drawPixmap(drop->getX() - cameraOffsetX, drop->getY() - cameraOffsetY, dropImage[2]);
     }
 
+    // 绘制NPC（应用摄像机偏移）
+    for (NPC* npc : npcList)
+    {
+        painter.drawPixmap(npc->getX() - cameraOffsetX, npc->getY() - cameraOffsetY,
+                          npcImage[npc->getCurrentImage()]);
+
+        // 如果玩家在交互范围内，绘制提示符号
+        if (npc->isPlayerInRange(player)) {
+            painter.setPen(Qt::yellow);
+            painter.setFont(QFont("Arial", 16, QFont::Bold));
+            painter.drawText(npc->getX() - cameraOffsetX + 20, npc->getY() - cameraOffsetY - 10, "!");
+        }
+    }
+
     // 绘制玩家血条（固定在屏幕上，不受摄像机影响）
     int maxHP = gameData->playerData.hp;
     int currentHP = player->getHp();
@@ -391,12 +442,34 @@ void GameWindow::paintEvent(QPaintEvent *event)
     painter.setPen(Qt::white);
     painter.drawText(healthBarRect.right() - 45, healthBarRect.y() + 15,
                      QString("%1").arg(currentHP));
+
+    // 绘制任务进度（固定在屏幕右上角）
+    int questY = 10;
+    for (NPC* npc : npcList) {
+        auto activeQuests = npc->getActiveQuests();
+        for (Quest* quest : activeQuests) {
+            painter.setPen(Qt::yellow);
+            painter.setFont(QFont("Arial", 12, QFont::Bold));
+            QString questText = QString("[任务] %1: %2")
+                .arg(quest->questName)
+                .arg(quest->getProgressText());
+            painter.drawText(width() - 250, questY, questText);
+            questY += 20;
+        }
+    }
 }
 
 void GameWindow::keyPressEvent(QKeyEvent *event)
 {
     if (event->isAutoRepeat())
         return;                      // 忽略重复按键事件
+
+    // E键触发NPC交互
+    if (event->key() == Qt::Key_E) {
+        handleNPCInteraction();
+        return;
+    }
+
     keyPressed.insert(event->key()); // 记录按下的键
 }
 void GameWindow::keyReleaseEvent(QKeyEvent *event)
@@ -625,6 +698,11 @@ void GameWindow::handleEnemyDead()
     {
         if ((*it)->getHp() <= 0)
         {
+            // 更新击杀任务进度
+            if ((*it)->getEnemyType() == Enemy::Goblin || (*it)->getEnemyType() == Enemy::UndeadMage) {
+                updateQuestProgress(KillEnemies, 1);
+            }
+
             (*it)->setPosition(0, 0);
             (*it)->stopMove();
             enemyDeadList.append(*it); // 将敌人添加到死亡列表中
@@ -830,6 +908,118 @@ void GameWindow::attackByDrop()
         bullets.append(bullet);
         connect(bullet, &Bullet::hitSth, this, [this, bullet]()
                 { bullets.removeOne(bullet); });
+    }
+}
+
+// 处理NPC交互
+void GameWindow::handleNPCInteraction()
+{
+    qDebug() << "handleNPCInteraction called, npcList size:" << npcList.size();
+
+    if (!player) {
+        qDebug() << "Player is null!";
+        return;
+    }
+
+    for (NPC* npc : npcList) {
+        qDebug() << "Checking NPC:" << npc->getName()
+                 << "at position (" << npc->getX() << "," << npc->getY() << ")"
+                 << "Player at (" << player->getX() << "," << player->getY() << ")";
+
+        if (npc->isPlayerInRange(player)) {
+            qDebug() << "Player in range! Showing dialogue.";
+            QString dialogue = npc->getDialogue();
+
+            // 显示对话框
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle(npc->getName());
+            msgBox.setText(dialogue);
+
+            // 根据任务状态添加按钮
+            auto available = npc->getAvailableQuests();
+            auto completed = npc->getCompletedQuests();
+
+            if (!completed.empty()) {
+                // 有已完成的任务，显示领取奖励按钮
+                msgBox.addButton("领取奖励", QMessageBox::AcceptRole);
+                msgBox.addButton("稍后再说", QMessageBox::RejectRole);
+
+                if (msgBox.exec() == QMessageBox::AcceptRole) {
+                    // 领取所有已完成的任务奖励
+                    int totalReward = 0;
+                    QStringList rewardedQuests;
+
+                    for (auto* quest : completed) {
+                        int reward = 0;
+                        if (npc->claimReward(quest->questId, reward)) {
+                            totalReward += reward;
+                            rewardedQuests.append(quest->questName);
+                        }
+                    }
+
+                    // 一次性显示所有奖励
+                    if (totalReward > 0) {
+                        QString rewardMsg = QString("完成任务：\n%1\n\n获得 %2 魔法水晶！")
+                            .arg(rewardedQuests.join("\n"))
+                            .arg(totalReward);
+                        QMessageBox::information(this, "任务奖励", rewardMsg);
+                    }
+                }
+            } else if (!available.empty()) {
+                // 有可接取的任务
+                msgBox.addButton("接受任务", QMessageBox::AcceptRole);
+                msgBox.addButton("拒绝", QMessageBox::RejectRole);
+
+                if (msgBox.exec() == QMessageBox::AcceptRole) {
+                    // 接受所有可用任务
+                    QStringList acceptedQuests;
+
+                    for (auto* quest : available) {
+                        if (npc->acceptQuest(quest->questId)) {
+                            acceptedQuests.append(quest->questName);
+                        }
+                    }
+
+                    // 一次性显示所有接受的任务
+                    if (!acceptedQuests.isEmpty()) {
+                        QString acceptMsg = QString("已接受任务：\n%1")
+                            .arg(acceptedQuests.join("\n"));
+                        QMessageBox::information(this, "任务接受", acceptMsg);
+                    }
+                }
+            } else {
+                // 检查是否有进行中的任务
+                auto activeQuests = npc->getActiveQuests();
+                if (!activeQuests.empty()) {
+                    // 显示进行中的任务进度
+                    msgBox.addButton("继续努力", QMessageBox::AcceptRole);
+                } else {
+                    // 没有任务了
+                    msgBox.addButton("再见", QMessageBox::AcceptRole);
+                }
+                msgBox.exec();
+            }
+
+            return; // 一次只与一个NPC交互
+        }
+    }
+}
+
+// 更新任务进度
+void GameWindow::updateQuestProgress(QuestType type, int amount)
+{
+    for (NPC* npc : npcList) {
+        auto activeQuests = npc->getActiveQuests();
+        for (Quest* quest : activeQuests) {
+            if (quest->type == type) {
+                quest->updateProgress(amount);
+                if (quest->isComplete()) {
+                    npc->completeQuest(quest->questId);
+                    QMessageBox::information(this, "任务完成",
+                        QString("任务【%1】已完成！返回NPC处领取奖励。").arg(quest->questName));
+                }
+            }
+        }
     }
 }
 

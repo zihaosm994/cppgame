@@ -47,6 +47,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         store.cpp
         savemanager.h
         savemanager.cpp
+        npc.h npc.cpp
+
+
 
 
 
