@@ -23,7 +23,7 @@ MyApp::MyApp(QWidget *parent)
     loadData();
     ui->setupUi(this);
     this->setWindowTitle("转移迷宫历险记");
-    this->setFixedSize(800, 600);
+    this->setFixedSize(1200, 800); // 放大窗口以适应新的游戏窗口
 
     // 初始化StackedWidget
     setupStackedWidget();
@@ -64,7 +64,7 @@ void MyApp::setupStackedWidget()
 {
     // 创建StackedWidget
     stackedWidget = new QStackedWidget(this);
-    stackedWidget->setGeometry(0, 0, 800, 600);
+    stackedWidget->setGeometry(0, 0, 1200, 800); // 放大以适应新窗口
 
     // 创建主菜单Widget
     createMainMenuWidget();
@@ -97,7 +97,7 @@ void MyApp::setupStackedWidget()
 void MyApp::createMainMenuWidget()
 {
     mainMenuWidget = new QWidget(this);
-    mainMenuWidget->setFixedSize(800, 600);
+    mainMenuWidget->setFixedSize(1200, 800); // 放大主菜单
 
     // 设置背景
     updateBackground();
@@ -530,6 +530,8 @@ void MyApp::showGame(GameData *data)
     gameWidget->setGameData(data);
     // 切换到游戏页面
     stackedWidget->setCurrentIndex(2);
+    // 设置焦点到游戏窗口，确保能接收键盘事件
+    gameWidget->setFocus();
 }
 
 void MyApp::onPlotFinished()

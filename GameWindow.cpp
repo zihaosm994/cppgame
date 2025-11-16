@@ -12,8 +12,8 @@
 
 GameWindow::GameWindow(QWidget *parent) : QWidget(parent), gameData(nullptr)
 {
-    // 设置固定大小
-    setFixedSize(800, 600);
+    // 设置固定大小（放大到1200x800）
+    setFixedSize(1200, 800);
     // 加载图片
     initPicture();
 
@@ -75,8 +75,9 @@ void GameWindow::setGameData(GameData *_data)
     goblinCount = 0;
     undeadMageCount = 0;
 
-    // 初始化玩家数据
-    player = new Player(Player::Roxy, gameData->playerData.generatepos);
+    // 初始化玩家数据（位置放大2倍）
+    QPoint scaledPlayerPos(gameData->playerData.generatepos.x() * 2, gameData->playerData.generatepos.y() * 2);
+    player = new Player(Player::Roxy, scaledPlayerPos);
     player->setHP(gameData->playerData.hp);
     player->setWeapon(new Weapon(gameData->playerData.weaponData.level, gameData->playerData.weaponData.type));
 
@@ -303,53 +304,74 @@ QPixmap GameWindow::loadAndProcessImage(const std::string &imagePath, int width,
 }
 void GameWindow::initPicture()
 {
-    // 初始化图片资源
-    int playerWidth = 30;
-    int playerHeight = 45;
+    // 初始化图片资源（所有尺寸放大2倍以适应新地图）
+    int playerWidth = 60;  // 放大2倍
+    int playerHeight = 90; // 放大2倍
     playerImage.push_back(loadAndProcessImage(":/images/roxy/RightWalk1.png", playerWidth, playerHeight)); // 玩家图片
     playerImage.push_back(loadAndProcessImage(":/images/roxy/RightWalk2.png", playerWidth, playerHeight)); // 玩家图片
     playerImage.push_back(loadAndProcessImage(":/images/roxy/LeftWalk1.png", playerWidth, playerHeight));  // 玩家图片
     playerImage.push_back(loadAndProcessImage(":/images/roxy/LeftWalk2.png", playerWidth, playerHeight));  // 玩家图片
     playerImage.push_back(loadAndProcessImage(":/images/roxy/backWalk1.png", playerWidth, playerHeight));  // 玩家图片
     playerImage.push_back(loadAndProcessImage(":/images/roxy/backWalk2.png", playerWidth, playerHeight));  // 玩家图片
-    goblinImage.push_back(loadAndProcessImage(":/images/goblin1.png", 40, 40));                            // 右1
-    goblinImage.push_back(loadAndProcessImage(":/images/goblin2.png", 40, 40));                            // 右2
-    goblinImage.push_back(loadAndProcessImage(":/images/goblin3.png", 40, 40));                            // 左1
-    goblinImage.push_back(loadAndProcessImage(":/images/goblin4.png", 40, 40));                            // 左2
-    bulletImage.push_back(loadAndProcessImage(":/images/IceBall.png", 10, 10));                            // 冰
-    bulletImage.push_back(loadAndProcessImage(":/images/RockBall.png", 10, 10));                           // 石头
-    bulletImage.push_back(loadAndProcessImage(":/images/FireBall.png", 10, 10));                           // 火
-    undeadMageImage = loadAndProcessImage(":/images/UndeadMage.png", 40, 40);                              // 敌人图片
-    dropImage.push_back(loadAndProcessImage(":/images/drop_healing.png", 40, 40));                         // 掉落物图片
-    dropImage.push_back(loadAndProcessImage(":/images/drop_attack.png", 40, 40));                          // 掉落物图片
-    dropImage.push_back(loadAndProcessImage(":/images/drop_speed.png", 40, 40));                           // 掉落物图片
+    goblinImage.push_back(loadAndProcessImage(":/images/goblin1.png", 80, 80));                            // 右1（放大2倍）
+    goblinImage.push_back(loadAndProcessImage(":/images/goblin2.png", 80, 80));                            // 右2（放大2倍）
+    goblinImage.push_back(loadAndProcessImage(":/images/goblin3.png", 80, 80));                            // 左1（放大2倍）
+    goblinImage.push_back(loadAndProcessImage(":/images/goblin4.png", 80, 80));                            // 左2（放大2倍）
+    bulletImage.push_back(loadAndProcessImage(":/images/IceBall.png", 20, 20));                            // 冰（放大2倍）
+    bulletImage.push_back(loadAndProcessImage(":/images/RockBall.png", 20, 20));                           // 石头（放大2倍）
+    bulletImage.push_back(loadAndProcessImage(":/images/FireBall.png", 20, 20));                           // 火（放大2倍）
+    undeadMageImage = loadAndProcessImage(":/images/UndeadMage.png", 80, 80);                              // 敌人图片（放大2倍）
+    dropImage.push_back(loadAndProcessImage(":/images/drop_healing.png", 80, 80));                         // 掉落物图片（放大2倍）
+    dropImage.push_back(loadAndProcessImage(":/images/drop_attack.png", 80, 80));                          // 掉落物图片（放大2倍）
+    dropImage.push_back(loadAndProcessImage(":/images/drop_speed.png", 80, 80));                           // 掉落物图片（放大2倍）
 }
 void GameWindow::paintEvent(QPaintEvent *event)
 {
     QWidget::paintEvent(event);
 
+    // 更新摄像机位置
+    updateCamera();
+
     QPainter painter(this);
     // painter.setRenderHint(QPainter::Antialiasing);
-    // 用缓存绘制地图
-    painter.drawPixmap(0, 0, mapCache);
 
-    painter.drawPixmap(player->getX(), player->getY(), playerImage[player->getCurrentImage()]);
+    // 用缓存绘制地图（应用摄像机偏移）
+    painter.drawPixmap(-cameraOffsetX, -cameraOffsetY, mapCache);
 
-    // 批量绘制敌人
+    // 绘制玩家（应用摄像机偏移）
+    painter.drawPixmap(player->getX() - cameraOffsetX, player->getY() - cameraOffsetY,
+                      playerImage[player->getCurrentImage()]);
+
+    // 批量绘制敌人（应用摄像机偏移）
     for (Enemy *enemy : enemies)
     {
         if (enemy->getEnemyType() == Enemy::Goblin)
-            painter.drawPixmap(enemy->getX(), enemy->getY(), goblinImage[enemy->getCurrentImage()]);
+            painter.drawPixmap(enemy->getX() - cameraOffsetX, enemy->getY() - cameraOffsetY,
+                             goblinImage[enemy->getCurrentImage()]);
         else if (enemy->getEnemyType() == Enemy::UndeadMage)
-            painter.drawPixmap(enemy->getX(), enemy->getY(), undeadMageImage);
+            painter.drawPixmap(enemy->getX() - cameraOffsetX, enemy->getY() - cameraOffsetY,
+                             undeadMageImage);
     }
 
+    // 绘制子弹（应用摄像机偏移）
     for (Bullet *bullet : bullets)
     {
-        painter.drawPixmap(bullet->getX(), bullet->getY(), bulletImage[bullet->getCurrentImage()]);
+        painter.drawPixmap(bullet->getX() - cameraOffsetX, bullet->getY() - cameraOffsetY,
+                          bulletImage[bullet->getCurrentImage()]);
     }
 
-    // 绘制玩家血条（固定边框版本）
+    // 绘制掉落物（应用摄像机偏移）
+    for (auto drop : dropList)
+    {
+        if (drop->getEnemyType() == Enemy::drop_healing)
+            painter.drawPixmap(drop->getX() - cameraOffsetX, drop->getY() - cameraOffsetY, dropImage[0]);
+        else if (drop->getEnemyType() == Enemy::drop_attack)
+            painter.drawPixmap(drop->getX() - cameraOffsetX, drop->getY() - cameraOffsetY, dropImage[1]);
+        else if (drop->getEnemyType() == Enemy::drop_speed)
+            painter.drawPixmap(drop->getX() - cameraOffsetX, drop->getY() - cameraOffsetY, dropImage[2]);
+    }
+
+    // 绘制玩家血条（固定在屏幕上，不受摄像机影响）
     int maxHP = gameData->playerData.hp;
     int currentHP = player->getHp();
     QRect healthBarRect(100, 10, 100, 20);                             // 固定边框尺寸
@@ -369,17 +391,6 @@ void GameWindow::paintEvent(QPaintEvent *event)
     painter.setPen(Qt::white);
     painter.drawText(healthBarRect.right() - 45, healthBarRect.y() + 15,
                      QString("%1").arg(currentHP));
-
-    // 绘制掉落物
-    for (auto drop : dropList)
-    {
-        if (drop->getEnemyType() == Enemy::drop_healing)
-            painter.drawPixmap(drop->getX(), drop->getY(), dropImage[0]);
-        else if (drop->getEnemyType() == Enemy::drop_attack)
-            painter.drawPixmap(drop->getX(), drop->getY(), dropImage[1]);
-        else if (drop->getEnemyType() == Enemy::drop_speed)
-            painter.drawPixmap(drop->getX(), drop->getY(), dropImage[2]);
-    }
 }
 
 void GameWindow::keyPressEvent(QKeyEvent *event)
@@ -476,7 +487,9 @@ void GameWindow::handleMovement(int step, int diagonalStep)
             return;
         }
     }
-    if (newPlayerRect.x() < 0 || newPlayerRect.x() + player->width > width() || newPlayerRect.y() < 0 || newPlayerRect.y() + player->height > height())
+    // 边界检测改为检测地图边界而不是窗口边界
+    if (newPlayerRect.x() < 0 || newPlayerRect.x() + player->width > mapWidth ||
+        newPlayerRect.y() < 0 || newPlayerRect.y() + player->height > mapHeight)
     {
         isCollided = true;
     }
@@ -516,7 +529,8 @@ void GameWindow::generateEnemy(Enemy::EnemyType type, std::vector<QPoint> *bornP
     else if (type == Enemy::UndeadMage)
         undeadMageCount++;
     int randomIndex = rand() % bornPos->size();
-    QPoint pos = (*bornPos)[randomIndex];
+    // 敌人生成位置也放大2倍
+    QPoint pos((*bornPos)[randomIndex].x() * 2, (*bornPos)[randomIndex].y() * 2);
     int enemyIndex = 0;
     if (type == Enemy::Goblin)
         enemyIndex = 0;
@@ -569,7 +583,7 @@ void GameWindow::handlePlayerAttack()
     if (!target)
         return;
 
-    int step = 8;
+    int step = 16; // 放大2倍以适应新地图
     double deltaX = target->getX() - player->getX();
     double deltaY = target->getY() - player->getY();
     double distance = sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -693,50 +707,83 @@ void GameWindow::createMapCache(std::vector<std::vector<int>> *grid)
 {
     int tileWidth = 10;
     int tileHeight = 10;
-    floorTile = QPixmap(":/images/floor.png").scaled(100, 100);
-    obstacleTile = QPixmap(":/images/Obstacle.png").scaled(tileWidth, tileHeight);
-    for (int i = 0; i < 80; ++i)
+
+    // 计算地图实际大小（扩大2倍）
+    mapWidth = grid->size() * tileWidth * 2;
+    mapHeight = grid->at(0).size() * tileHeight * 2;
+
+    floorTile = QPixmap(":/images/floor.png").scaled(200, 200); // 地板瓦片也放大2倍
+    obstacleTile = QPixmap(":/images/Obstacle.png").scaled(tileWidth * 2, tileHeight * 2); // 障碍物放大2倍
+
+    // 创建障碍物列表（坐标也放大2倍）
+    for (int i = 0; i < grid->size(); ++i)
     {
-        for (int j = 0; j < 60; ++j)
+        for (int j = 0; j < grid->at(i).size(); ++j)
         {
             if ((*grid)[i][j])
             {
-                obstacles.append(QRect(i * 10, j * 10, 10, 10));
+                obstacles.append(QRect(i * 20, j * 20, 20, 20)); // 放大2倍
             }
         }
     }
-    mapCache = QPixmap(grid->size() * tileWidth, grid->at(0).size() * tileHeight);
+
+    mapCache = QPixmap(mapWidth, mapHeight);
     mapCache.fill(Qt::transparent); // 填充透明背景
     QPainter painter(&mapCache);
 
-    // 绘制16*12的地板
-    for (int i = 0; i < 8; i++)
+    // 绘制地板（放大2倍，数量也增加）
+    for (int i = 0; i < mapWidth / 200 + 1; i++)
     {
-        for (int j = 0; j < 6; j++)
+        for (int j = 0; j < mapHeight / 200 + 1; j++)
         {
-            painter.drawPixmap(i * 100, j * 100, floorTile);
+            painter.drawPixmap(i * 200, j * 200, floorTile);
         }
     }
+
+    // 绘制障碍物（放大2倍）
     for (int i = 0; i < grid->size(); ++i)
     {
         for (int j = 0; j < grid->at(i).size(); ++j)
         {
             if ((*grid)[i][j] == 1)
             { // 如果是墙壁
-                painter.drawPixmap(i * tileWidth, j * tileHeight, obstacleTile);
+                painter.drawPixmap(i * 20, j * 20, obstacleTile);
             }
         }
     }
-    // 根据enemyData[2]绘制魔法阵
+
+    // 根据enemyData[2]绘制魔法阵（位置也放大2倍）
     for (int i = 0; i < gameData->enemyData[2].totalNum; i++)
     {
-        magicCircleList.append(QRect(gameData->enemyData[2].generatePos[i].x(), gameData->enemyData[2].generatePos[i].y(), 50, 50));
+        magicCircleList.append(QRect(gameData->enemyData[2].generatePos[i].x() * 2,
+                                     gameData->enemyData[2].generatePos[i].y() * 2, 100, 100)); // 放大2倍
     }
-    magicCircleImage = loadAndProcessImage(":/images/MagicCircle.png", 50, 50); // 加载并处理魔法阵图片
+    magicCircleImage = loadAndProcessImage(":/images/MagicCircle.png", 100, 100); // 魔法阵也放大2倍
     for (int i = 0; i < magicCircleList.size(); i++)
     {
         painter.drawPixmap(magicCircleList[i].x(), magicCircleList[i].y(), magicCircleImage);
     }
+}
+
+// 更新摄像机位置，使玩家居中
+void GameWindow::updateCamera()
+{
+    if (!player)
+        return;
+
+    // 计算摄像机偏移，使玩家在屏幕中心
+    cameraOffsetX = player->getX() + player->width / 2 - width() / 2;
+    cameraOffsetY = player->getY() + player->height / 2 - height() / 2;
+
+    // 限制摄像机不超出地图边界
+    if (cameraOffsetX < 0)
+        cameraOffsetX = 0;
+    if (cameraOffsetY < 0)
+        cameraOffsetY = 0;
+    if (cameraOffsetX > mapWidth - width())
+        cameraOffsetX = mapWidth - width();
+    if (cameraOffsetY > mapHeight - height())
+        cameraOffsetY = mapHeight - height();
 }
 
 void GameWindow::handleDrop(Enemy *drop)

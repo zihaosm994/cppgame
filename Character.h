@@ -62,8 +62,8 @@ public:
     };
     Player(PlayerRole role,QPoint pos);
     ~Player();
-    const int width = 30; // 角色的宽度
-    const int height =45; // 角色的高度
+    const int width = 60; // 角色的宽度（放大2倍）
+    const int height = 90; // 角色的高度（放大2倍）
     Weapon* getWeapon() const; // 获取武器指针
     void setWeapon(Weapon* weapon); // 设置武器指针
 private:
@@ -84,8 +84,8 @@ public:
     };
     Enemy(EnemyType type,QPoint pos);
     ~Enemy();
-    const int width = 40; // 角色的宽度
-    const int height = 40; // 角色的高度
+    const int width = 80; // 角色的宽度（放大2倍）
+    const int height = 80; // 角色的高度（放大2倍）
     static Player* attackTarget;// 攻击目标
     static std::vector<std::vector<int>> grid;// 地图
 
@@ -105,7 +105,7 @@ private:
     QTimer *moveSpeedChangeTimer; // 用于处理移动速度改变的定时器
     void changeMoveSpeed(); // 改变移动速度的函数
     void AIMove();  //AI移动
-    int moveStep=4; //移动步长
+    int moveStep=8; //移动步长（放大2倍以适应新地图）
     std::vector<std::pair<int,int>> path={};//路径
     void getNewPath();//获取新路径
     int pathIndex=0;//路径索引
@@ -141,11 +141,11 @@ private:
 class Bullet: public Character{
     Q_OBJECT
 public:
-    Bullet(); 
+    Bullet();
     ~Bullet();
-    const int width = 10; // 子弹的宽度
-    const int height = 10;// 子弹的高度
-    int targetWidth=30,targetHeight=45;//目标宽度和高度
+    const int width = 20; // 子弹的宽度（放大2倍）
+    const int height = 20;// 子弹的高度（放大2倍）
+    int targetWidth=60,targetHeight=90;//目标宽度和高度（放大2倍）
     void move(); // 移动函数
     void setType(BulletType type); // 设置子弹类型
     void startMove(int spped=10);// 启动移动

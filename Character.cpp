@@ -144,17 +144,17 @@ void Enemy::launchAttack()
         return;
     }
     if (attackTarget == nullptr)
-        return;                               
-    int dx = attackTarget->getX() + attackTarget->width/2 - (x+width/2);    
-    int dy = attackTarget->getY() + attackTarget->height/2 - (y+width/2); 
-    double distance = sqrt(dx * dx + dy * dy); 
-    dx = static_cast<int>((dx / distance) * 8); 
-    dy = static_cast<int>((dy / distance) * 8);
+        return;
+    int dx = attackTarget->getX() + attackTarget->width/2 - (x+width/2);
+    int dy = attackTarget->getY() + attackTarget->height/2 - (y+width/2);
+    double distance = sqrt(dx * dx + dy * dy);
+    dx = static_cast<int>((dx / distance) * 16); // 放大2倍以适应新地图
+    dy = static_cast<int>((dy / distance) * 16); // 放大2倍以适应新地图（修正bug）
 
     Bullet *bullet =Bullet::createBullet(BulletType::FireBall, x + width / 2, y + height / 2, dx, dy, attackTarget);
-    bullet->setInformation(damage);     
+    bullet->setInformation(damage);
     bullet->startMove(10);
-    emit createBullet(bullet);       
+    emit createBullet(bullet);
 }
 void Enemy::setSpeedF(std::pair<int, int> *speedF) {
      this->speedF = *speedF; 
@@ -192,7 +192,7 @@ Weapon::Weapon(int level, BulletType bulletType) : level(level), bulletType(bull
         coolDownCD = 100;
         break;
     }
-    range=300;}
+    range=600;} // 放大2倍以适应新地图
     else if(bulletType==RockBall){
         switch (level)
         {
@@ -209,7 +209,7 @@ Weapon::Weapon(int level, BulletType bulletType) : level(level), bulletType(bull
         coolDownCD = 120;
         break;
     }
-    range=300;
+    range=600; // 放大2倍以适应新地图
         }
     }
 
@@ -237,17 +237,18 @@ void Bullet::move()
     {
     //碰撞检测检测是否打到Target
     QRect bulletRect(x, y, width, height);
-    QRect targetRect(target->getX(), target->getY(), 30, 45);
+    QRect targetRect(target->getX(), target->getY(), targetWidth, targetHeight); // 使用成员变量
     if (bulletRect.intersects(targetRect))
     {
-        target->setHP(target->getHp() - damage); 
-        moveTimer->stop();   
-        emit hitSth();       
+        target->setHP(target->getHp() - damage);
+        moveTimer->stop();
+        emit hitSth();
         deleteBullet(this);
         return;
     }
 }
-    if (x + dx >= 800 || x + dx <= 0 || y + dy >= 600 || y + dy <= 0)
+    // 边界检测改为更大的地图边界（暂时使用一个很大的值，实际应该从GameWindow传入）
+    if (x + dx >= 3200 || x + dx <= 0 || y + dy >= 2400 || y + dy <= 0)
     {                        
         moveTimer->stop();   
         emit hitSth();       

@@ -4,12 +4,12 @@
 
 Plot::Plot(QWidget *parent) : QWidget(parent)
 {
-    // 设置固定大小
-    setFixedSize(800, 600);
+    // 设置固定大小（放大到1200x800）
+    setFixedSize(1200, 800);
 
     // 初始化文本浏览器
     textBrowser = new QTextBrowser(this);       // 创建 QTextBrowser 控件
-    textBrowser->setGeometry(0, 500, 800, 100); // 设置文本浏览器的位置和大小
+    textBrowser->setGeometry(0, 650, 1200, 150); // 设置文本浏览器的位置和大小（放大）
     // 设置为黑色半透明
     textBrowser->setStyleSheet("background-color: rgba(0, 0, 0, 128);");
     // 设置文本靠左对齐

@@ -52,6 +52,13 @@ private:
 
     Player *player = nullptr; // 玩家指针
 
+    // 摄像机系统
+    int cameraOffsetX = 0; // 摄像机X偏移
+    int cameraOffsetY = 0; // 摄像机Y偏移
+    int mapWidth = 0;      // 地图实际宽度
+    int mapHeight = 0;     // 地图实际高度
+    void updateCamera();   // 更新摄像机位置
+
     QList<QRect> obstacles = {};       // 障碍物列表
     QList<Bullet *> bullets = {};      // 子弹列表
     QList<Enemy *> enemies = {};       // 敌人指针列表
