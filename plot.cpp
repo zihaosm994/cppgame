@@ -5,11 +5,11 @@
 Plot::Plot(QWidget *parent) : QWidget(parent)
 {
     // 设置固定大小（放大到1200x800）
-    setFixedSize(1200, 800);
-
+    width=parent->width();
+    height=parent->height();
     // 初始化文本浏览器
     textBrowser = new QTextBrowser(this);       // 创建 QTextBrowser 控件
-    textBrowser->setGeometry(0, 650, 1200, 150); // 设置文本浏览器的位置和大小（放大）
+    textBrowser->setGeometry(0,0.7*height, width, 0.3*height); // 设置文本浏览器的位置和大小（放大）
     // 设置为黑色半透明
     textBrowser->setStyleSheet("background-color: rgba(0, 0, 0, 128);");
     // 设置文本靠左对齐
@@ -32,10 +32,10 @@ Plot::Plot(QWidget *parent) : QWidget(parent)
 
     // 设置字体
     QFont font;            // 创建 QFont 对象
-    font.setPointSize(16); // 设置字体大小为 16 像素
+    font.setPointSize(0.05*height); // 设置字体大小为 16 像素
     font.setBold(false);   // 设置字体为非粗体
     // 设置字体样式为
-    font.setFamily("SimSun");
+    font.setFamily("Microsoft YaHei");
     textBrowser->setFont(font); // 设置文本浏览器的字体为 font
     // 设置文本颜色
     textBrowser->setTextColor(Qt::white); // 设置文本颜色为白色
