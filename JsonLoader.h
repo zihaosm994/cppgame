@@ -21,8 +21,9 @@ public:
 private:
     // 从json文件中加载关卡数据
     static PlayerData parsePlayerData(const json& player_json);
-    static EnemyData parseEnemyData(const json& enemy_json);
+    static std::vector<EnemySpawnConfig> parseEnemyConfig(const json& enemy_json);
     static MapData parseMapData(const json& map_json);
+    static std::vector<BulletData> parseBulletData(const json& bullet_json);
 };
 
 class JsonPlotLoader {
