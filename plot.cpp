@@ -62,6 +62,7 @@ void Plot::reset()
     currentindex = 0;
     currentCharIndex = 0;
     currentText.clear();
+    currentImage=QPixmap();
     textBrowser->clear();
     if (typeTimer->isActive())
     {
@@ -73,7 +74,7 @@ void Plot::init()
     // 设置背景图片
     backgroundImage.load(bgPath.c_str());                                                              // 加载背景图片
     backgroundImage = backgroundImage.scaled(800, 600, Qt::KeepAspectRatio, Qt::SmoothTransformation); // 缩放背景图片以适应窗口大小
-
+    reset();
     showNext(); // 显示第一个文本和图片
     QTimer::singleShot(100, this, [this]()
                        {
@@ -105,20 +106,32 @@ void Plot::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);                    // 创建 QPainter 对象，用于绘制窗口内容
     painter.drawPixmap(0, 0, backgroundImage); // 绘制背景图片
+     if (!currentImage.isNull()) {
+        // 将NPC图片缩放到合适大小
+        QPixmap scaledNpc = currentImage.scaled(0.3 * width, 0.5 * height, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        // 在右侧显示NPC图片
+        int npcX = width - scaledNpc.width() - 20;  // 右边留20像素边距
+        int npcY = (height - scaledNpc.height()) / 2;  // 垂直居中
+        painter.drawPixmap(npcX, npcY, scaledNpc);
+    }
 }
 
 void Plot::showNext()
-{
+{         
     if (currentindex < textList.size())
     { // 如果还有文本要显示
-        currentText = QString::fromStdString(textList.at(currentindex));
-        currentImage.load( QString::fromStdString(textList.at(currentindex)).c_str());
-        QPainter painter(this); 
-        painter.drawPixmap(0.8*width,0.2*height,currentImage) ;
+       currentText = QString::fromStdString(textList.at(currentindex));
+        if (currentindex < npcimagelist.size() && !npcimagelist[currentindex].empty()) {
+            currentImage.load(QString::fromStdString(npcimagelist[currentindex]));
+            currentImage = currentImage.scaled(200, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        } else {
+            currentImage = QPixmap(); 
+        }
         currentCharIndex = 0;
         textBrowser->clear();
         typeTimer->start(50); // 每50ms显示一个字（可根据需要调整）
         currentindex++;
+        update();
     }
     else
     {                        // 如果没有文本要显示了
