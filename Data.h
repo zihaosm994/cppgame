@@ -134,8 +134,8 @@ public:
     // 构造函数
     PlotData() : plotId(0) {}
 
-    PlotData(int id, const std::vector<std::string> &texts, const std::string &bgPath)
-        : plotId(id), textList(texts), backgroundPath(bgPath) {}
+    PlotData(int id, const std::vector<std::string> &texts, const std::vector<std::string> &images, const std::string &bgPath)
+        : plotId(id), textList(texts),npcimageList(images) backgroundPath(bgPath) {}
 
     // Getter方法
     int getPlotId() const { return plotId; }
@@ -147,14 +147,18 @@ public:
     // Setter方法
     void setPlotId(int id) { plotId = id; }
     void setTextList(const std::vector<std::string> &texts) { textList = texts; }
+    void setnpcimageList(const std::vector<std::string> &images) { npcimageList = images; }
     void setBackgroundPath(const std::string &path) { backgroundPath = path; }
     void addText(const std::string &text) { textList.push_back(text); }
+    void addnpcimage(const std::string &image) { npcimageList.push_back(image);}
     void clearText() { textList.clear(); }
+    void clearimages() {npcimageList.clear();}
 
 private:
-    int plotId;                        // 剧情ID
-    std::vector<std::string> textList; // 剧情文本列表
-    std::string backgroundPath;        // 背景图片路径
+    int plotId;                           // 剧情ID
+    std::vector<std::string> textList;    // 剧情文本列表
+    std::vector<std::string> npcimageList; // npc图片路径列表
+    std::string backgroundPath;       // 背景图片路径
 };
 
 // 游戏数据类

@@ -19,7 +19,7 @@ public:
     ~Plot();
 
     // 设置剧情内容
-    void setPlotContent(std::vector<std::string> *textList, std::string bgPath);
+    void setPlotContent(std::vector<std::string> *textList, std::vector<std::string> *images, std::string bgPath);
     // 重置剧情状态
     void reset();
 
@@ -28,17 +28,19 @@ signals:
 
 private:
     QPixmap backgroundImage;
+    QPixmap currentImage;
     QTextBrowser *textBrowser;         // 用于显示文本的 QTextBrowser 控件
     std::vector<std::string> textList; // 存储文本的向量
     std::string bgPath;                // 背景图片路径
-    int currentTextIndex = 0;          // 当前显示的文本索引
+    std::vector<std::string> npcimagelist;
+    int currentindex = 0;          // 当前显示的文本索引
 
     void init();
     // 重写键盘事件
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
-    // 显示下一个文本的函数
-    void showNextText();
+    // 显示下一个文本和图片的函数
+    void showNext();
     // 重写paintEvent事件
     void paintEvent(QPaintEvent *event) override;
     void showEvent(QShowEvent *event) override;
