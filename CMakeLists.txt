@@ -32,7 +32,6 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Multimedia)
 
 set(PROJECT_SOURCES
         main.cpp
-        Character.cpp
         Data.cpp
         findpath.cpp
         MyApp.cpp
@@ -41,6 +40,10 @@ set(PROJECT_SOURCES
         store.cpp
         savemanager.cpp
         JsonLoader.cpp
+        Enemy.cpp
+        Bullet.cpp
+        Player.cpp
+        npc.cpp
 )
 
 # 添加头文件目录
@@ -51,7 +54,6 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         MyApp.ui
-        Character.h
         findpath.h
         MyApp.h
         Data.h
@@ -59,7 +61,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         GameWindow.h
         store.h
         savemanager.h
-            JsonLoader.h
+        JsonLoader.h
+        Enemy.h
+        Bullet.h
+        Player.h
+        npc.h
         resources.qrc
     )
 else()
