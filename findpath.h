@@ -1,9 +1,13 @@
 #ifndef FIND_PATH_H
 #define FIND_PATH_H
 #include <vector>
-#include <utility>
+#include <QPoint>
+#include "Data.h"
 using namespace std;
-vector<pair<int,int>> AStar(const vector<vector<int>>& grid, 
-                            pair<int,int> start, 
-                            pair<int,int> end);
+vector<QPoint> *AStar(MapData* mapData,
+                             int width,
+                             int height,
+                            int step,
+                        QPoint start,
+                        QPoint end);
 #endif

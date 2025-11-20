@@ -7,6 +7,7 @@
 #include <QPixmap>
 #include <vector>
 #include <string>
+#include <utility> // for std::pair
 #include <QTimer>
 #include <QString>
 
@@ -19,7 +20,7 @@ public:
     ~Plot();
 
     // 设置剧情内容
-    void setPlotContent(std::vector<std::string> *textList, std::string bgPath);
+    void setPlotContent(std::vector<std::pair<std::string, std::string>>* plotContent);
     // 重置剧情状态
     void reset();
 
@@ -27,18 +28,23 @@ signals:
     void plotFinished(); // 剧情播放完毕信号
 
 private:
-    QPixmap backgroundImage;
     QTextBrowser *textBrowser;         // 用于显示文本的 QTextBrowser 控件
-    std::vector<std::string> textList; // 存储文本的向量
-    std::string bgPath;                // 背景图片路径
-    int currentTextIndex = 0;          // 当前显示的文本索引
+
+    // 核心数据指针
+    std::vector<std::pair<std::string, std::string>>* plotContent = nullptr;
+
+    int currentTextIndex = 0;          // 当前显示的剧情节点索引
+    QPixmap backgroundImage;           // **新增**：当前显示的背景图片
 
     void init();
+
     // 重写键盘事件
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
-    // 显示下一个文本的函数
+
+    // 显示下一个剧情（图片+文本）的函数
     void showNextText();
+
     // 重写paintEvent事件
     void paintEvent(QPaintEvent *event) override;
     void showEvent(QShowEvent *event) override;

@@ -9,11 +9,9 @@ std::vector<Bullet *> Bullet::bulletsPool;
 
 Bullet::Bullet(QObject *parent)
     : QObject(parent),
+    bulletID(0),pictureIndex(0),
       x(0), y(0), dx(0), dy(0),
-      width(20), height(20),
-      bulletId(0), damage(0),
-      currentImageIndex(0), currentFrameInList(0),
-      FRAME_CNT(8), frameCnt(0),
+      width(20), height(20), damage(0),
       moveSpeed(10),
       target(nullptr), targetWidth(60), targetHeight(90),
       enemiesList(nullptr), obstaclesList(nullptr)
@@ -54,53 +52,28 @@ void Bullet::stopMove()
     }
 }
 
-void Bullet::updateAnimation()
-{
-    if (imageIndices.empty())
-        return;
 
-    frameCnt = (frameCnt + 1) % FRAME_CNT;
-    if (frameCnt == 0)
-    {
-        currentFrameInList = (currentFrameInList + 1) % imageIndices.size();
-        currentImageIndex = imageIndices[currentFrameInList];
-    }
-}
 
 void Bullet::initialize(const BulletData &data, int startX, int startY,
                         double deltaX, double deltaY, Character *tgt, int baseDamage)
 {
+    pictureCnt=data.imagePaths.size();
     // 基础属性
+    bulletID=data.bulletID;
     x = startX;
     y = startY;
     dx = deltaX;
     dy = deltaY;
     width = data.width;
     height = data.height;
-    bulletId = data.bulletId;
     damage = static_cast<int>(baseDamage * data.damageMultiplier);
-
-    // 动画相关
-    imageIndices = data.imageIndices;
-    currentFrameInList = 0;
-    frameCnt = 0;
-    FRAME_CNT = data.frameCnt;
-    if (!imageIndices.empty())
-    {
-        currentImageIndex = imageIndices[0];
-    }
-    else
-    {
-        currentImageIndex = 0;
-    }
-
     // 移动相关
     moveSpeed = data.moveSpeed;
 
     // 目标相关
     target = tgt;
-    targetWidth = data.targetWidth;
-    targetHeight = data.targetHeight;
+    targetWidth =target->getWidth();
+    targetHeight = target->getHeight();
 
     // 重置列表（需要外部设置）
     enemiesList = nullptr;
@@ -109,9 +82,6 @@ void Bullet::initialize(const BulletData &data, int startX, int startY,
 
 void Bullet::move()
 {
-    // 更新动画
-    updateAnimation();
-
     // 检测与目标的碰撞
     if (target != nullptr)
     {
@@ -129,7 +99,7 @@ void Bullet::move()
     }
 
     // 边界检测（使用较大的地图边界）
-    if (x + dx >= 3200 || x + dx <= 0 || y + dy >= 2400 || y + dy <= 0)
+    if (x + dx  >= 3200 || x + dx <= 0 || y + dy >= 2400 || y + dy <= 0)
     {
         moveTimer->stop();
         emit hitSth();
@@ -216,4 +186,9 @@ void Bullet::deleteBullet(Bullet *bullet)
         bullet->isUsed = false;
         bullet->stopMove();
     }
+}
+
+int Bullet::updatePictureIndex(){
+    pictureIndex=(pictureIndex+1)%pictureCnt;
+    return pictureIndex;
 }

@@ -13,61 +13,12 @@ SaveData::SaveData()
 
 bool SaveData::saveToFile(const QString &filePath)
 {
-    QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        qDebug() << "无法打开文件进行保存:" << filePath;
-        return false;
-    }
-
-    QTextStream out(&file);
-
-    // 保存元数据
-    out << saveName << "\n";
-    out << saveTime << "\n";
-    out << saveSlot << "\n";
-
-    // 保存游戏数据
-    out << magicCrystal << "\n";
-    out << playerData << "\n";
-    out << weaponData_1 << "\n";
-    out << weaponData_2 << "\n";
-    out << static_cast<int>(passData_1_isPass) << "\n";
-    out << static_cast<int>(passData_2_isPass) << "\n";
-
-    file.close();
-    return true;
+    return false;
 }
 
 bool SaveData::loadFromFile(const QString &filePath)
 {
-    QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        qDebug() << "无法打开文件进行读取:" << filePath;
-        return false;
-    }
-
-    QTextStream in(&file);
-
-    // 读取元数据
-    saveName = in.readLine();
-    saveTime = in.readLine();
-    in >> saveSlot;
-
-    // 读取游戏数据
-    in >> magicCrystal;
-    in >> playerData;
-    in >> weaponData_1;
-    in >> weaponData_2;
-
-    int isPass1, isPass2;
-    in >> isPass1 >> isPass2;
-    passData_1_isPass = static_cast<bool>(isPass1);
-    passData_2_isPass = static_cast<bool>(isPass2);
-
-    file.close();
-    return true;
+    return false;
 }
 
 // SaveManager实现

@@ -87,36 +87,10 @@ int Store::exec()
 
 void Store::onBuyWeapon1()
 {
-    if (!_magicCrystal || !_weaponData_1)
-        return;
 
-    if (*_magicCrystal >= 100 && _weaponData_1->bulletSpeedF > 1)
-    {
-        *_magicCrystal -= 100;
-        _weaponData_1->bulletSpeedF -= 1;
-        updateUI();
-        QMessageBox::information(this, "购买成功", "洛琪希的法杖升级成功！射速提升！");
-    }
-    else
-    {
-        QMessageBox::warning(this, "购买失败", "魔法水晶不足！(或子弹射速已满)");
-    }
 }
 
 void Store::onBuyWeapon2()
 {
-    if (!_magicCrystal || !_weaponData_2)
-        return;
 
-    if (*_magicCrystal >= 100 && _weaponData_2->bulletSpeedF > 1)
-    {
-        *_magicCrystal -= 100;
-        _weaponData_2->bulletSpeedF -= 1;
-        updateUI();
-        QMessageBox::information(this, "购买成功", "傲慢水龙王升级成功！射速提升！");
-    }
-    else
-    {
-        QMessageBox::warning(this, "购买失败", "魔法水晶不足！(或子弹射速已满)");
-    }
 }

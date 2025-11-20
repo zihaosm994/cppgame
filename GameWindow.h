@@ -32,13 +32,11 @@ public:
     void stopGame();
     // 清理按键状态（在返回主菜单时调用）
     void clearKeyState();
-
-    QList<QRect> getObstaclesList() const { return obstacles; };
+    void startGame();
     QList<Enemy *> getEnemiesList() const { return enemies; };
 
 protected:
     void closeEvent(QCloseEvent *event) override;
-
 private:
     QSet<int> keyPressed;
 
@@ -62,24 +60,21 @@ private:
     int mapHeight = 0;     // 地图实际高度
     void updateCamera();   // 更新摄像机位置
 
-    // 游戏对象列表
-    QList<QRect> obstacles = {};       // 障碍物列表
     QList<Bullet *> bullets = {};      // 子弹列表
     QList<Enemy *> enemies = {};       // 敌人指针列表
     QList<Enemy *> enemyDeadList = {}; // 敌人死亡列表
+    std::vector<bool> isGreeting;       //是否触发过npc剧情
 
     // 图片资源
     QPixmap mapCache;                 // 地图缓存
-    QPixmap floorTile;                // 地板瓦片
-    QPixmap obstacleTile;             // 墙壁瓦片
-    std::vector<QPixmap> playerImage; // 玩家图片
-    std::vector<QPixmap> enemyImages; // 敌人图片（统一管理）
-    std::vector<QPixmap> bulletImage; // 子弹图片
-
+    std::map<Direction,std::vector<QPixmap>> playerImage; // 玩家图片
+    std::vector<std::map<Direction,std::vector<QPixmap>>> enemyImages; // 敌人图片（统一管理）
+    std::vector<std::vector<QPixmap>> bulletImage; // 子弹图片
+    std::vector<std::pair<std::pair<QPixmap,QPixmap>,bool>> npcImage;
     QPixmap loadAndProcessImage(const std::string &imagePath, int width, int height);
 
     void initPicture();
-    void createMapCache(std::vector<std::vector<int>> *grid); // 创建地图缓存
+    void createMapCache(); // 创建地图缓存
 
     // 事件处理
     void paintEvent(QPaintEvent *event) override;    // 重写paintEvent事件
@@ -92,10 +87,13 @@ private:
     void handlePlayerAttack();                       // 处理攻击的函数
     void handleEnemyDead();                          // 处理敌人死亡的函数
     void handlePlayerDead();                         // 处理玩家死亡的函数
+    void handleNPCGreeting(int id);
 
     // 图片索引映射（从路径到索引）
     std::map<std::string, int> imagePathToIndex;
 
+
 signals:
     void gameFinished(); // 游戏结束信号
+    void plotStart(int id);
 };

@@ -1,94 +1,82 @@
 #include "Enemy.h"
-#include "Character.h"
 #include "Bullet.h"
 #include "Data.h"
-#include "findpath.h"
 #include <QRandomGenerator>
 #include <cmath>
 
 // 静态成员初始化
 Player *Enemy::attackTarget = nullptr;
-std::vector<std::vector<int>> Enemy::grid;
+MapData *Enemy::mapData = nullptr;
+std::vector<Enemy *> * Enemy::enemiesPool =nullptr;
+QList<Enemy *> *Enemy:: allenemies = nullptr;
+QList<QRect> * Enemy::obstacles = nullptr;
 
-Enemy::Enemy(const EnemyData &data, QPoint pos, QObject *parent)
-    : QObject(parent),
-      x(pos.x()), y(pos.y()),
-      width(data.width), height(data.height),
-      hp(data.hp), damage(data.damage),
-      enemyType(data.enemyType),
-      imageIndices(data.imageIndices),
-      currentImageIndex(0), currentFrameInList(0),
-      FRAME_CNT(data.frameCnt), frameCnt(0),
-      canMove(data.canMove), moveStep(data.moveStep),
-      speedF(data.speedF), pathUpdateFreq(data.pathUpdateFreq),
-      pathIndex(0), obstaclesList(nullptr),
-      hasMeleeAttack(data.hasMeleeAttack),
-      hasRangedAttack(data.hasRangedAttack),
-      attackCD(data.attackCD), bulletId(data.bulletId),
-      bulletSpeed(data.bulletSpeed), bulletData(nullptr)
+Enemy::Enemy(QObject *parent)
+    : Character(parent)
 {
-    // 初始化当前图片索引
-    if (!imageIndices.empty())
-    {
-        currentImageIndex = imageIndices[0];
-    }
 
     // 初始化定时器
-    AIMoveTimer = nullptr;
-    pathTimer = nullptr;
-    moveSpeedChangeTimer = nullptr;
-    attackTimer = nullptr;
+    AIMoveTimer = new QTimer(this);
+    moveSpeedChangeTimer = new QTimer(this);
+    attackTimer = new QTimer(this);
+    isDead=true;
+    curState=Right;
+}
+void Enemy::initEnemiesPool(int num){
+    enemiesPool = new std::vector<Enemy*>();
+    for(int i=0;i<num;i++){
+        Enemy *enemy=new Enemy;
+        enemiesPool->push_back(enemy);
+    }
+}
 
+
+Enemy* Enemy::createEnemy( EnemySpawnConfig & config){
+    Enemy *res=nullptr;
+    for(int i=0;i<enemiesPool->size();i++){
+        if((*enemiesPool)[i]->isDead==true){
+            res =(*enemiesPool)[i];
+            break;
+            }
+    }
+    if(res==nullptr){res= new Enemy;enemiesPool->push_back(res);}
+    res->isDead=false;
+    res->setHP(config.enemyData.hp);
+    res->data=&(config.enemyData);
+    int randomIndex = rand() % config.spawnPositions.size();
+    QPoint pos = config.spawnPositions[randomIndex];
+    res->setPosition(pos.x(),pos.y());
     // 如果可以移动，初始化移动相关定时器
-    if (canMove)
+    if (config.enemyData.canMove)
     {
-        moveSpeedChangeTimer = new QTimer(this);
-        connect(moveSpeedChangeTimer, &QTimer::timeout, this, &Enemy::changeMoveSpeed);
-        moveSpeedChangeTimer->start(500);
-
-        pathTimer = new QTimer(this);
-        connect(pathTimer, &QTimer::timeout, this, &Enemy::getNewPath);
-        pathTimer->start(pathUpdateFreq);
-
-        AIMoveTimer = new QTimer(this);
-        connect(AIMoveTimer, &QTimer::timeout, this, &Enemy::AIMove);
+        connect(res->moveSpeedChangeTimer, &QTimer::timeout, res, &Enemy::changeMoveSpeed);
+        res->moveSpeedChangeTimer->start(500);
+        connect(res->AIMoveTimer, &QTimer::timeout, res, &Enemy::AIMove);
         // 初始移动速度
-        changeMoveSpeed();
+        res->changeMoveSpeed();
     }
-
     // 如果有远程攻击，初始化攻击定时器
-    if (hasRangedAttack)
+    if (config.enemyData.hasRangedAttack)
     {
-        attackTimer = new QTimer(this);
-        connect(attackTimer, &QTimer::timeout, this, &Enemy::launchRangedAttack);
-        attackTimer->start(attackCD);
+        connect(res->attackTimer, &QTimer::timeout, res, [res](){
+            res->launchRangedAttack();
+        });
     }
+    if(config.enemyData.hasMeleeAttack){
+        connect(res->attackTimer,&QTimer::timeout,res,[res](){
+            res->checkCollisionTarget(res->getX(),res->getY());
+        });
+    }
+    res->attackTimer->start(res->data->attackCD);
+
+
+    res->pictureIndex[Left].maxCnt=config.enemyData.leftWalkPaths.size();
+    res->pictureIndex[Right].maxCnt=config.enemyData.rightWalkPaths.size();
+    return res;
 }
 
 Enemy::~Enemy()
 {
-    // 停止所有定时器
-    if (AIMoveTimer)
-    {
-        AIMoveTimer->stop();
-        delete AIMoveTimer;
-    }
-    if (pathTimer)
-    {
-        pathTimer->stop();
-        delete pathTimer;
-    }
-    if (moveSpeedChangeTimer)
-    {
-        moveSpeedChangeTimer->stop();
-        delete moveSpeedChangeTimer;
-    }
-    if (attackTimer)
-    {
-        attackTimer->stop();
-        delete attackTimer;
-    }
-
     this->disconnect();
 }
 
@@ -107,93 +95,61 @@ void Enemy::stopMove()
 {
     if (AIMoveTimer)
         AIMoveTimer->stop();
-    if (pathTimer)
-        pathTimer->stop();
     if (moveSpeedChangeTimer)
         moveSpeedChangeTimer->stop();
 }
 
 void Enemy::startMove()
 {
-    if (canMove)
+    if (data->canMove)
     {
-        if (pathTimer)
-            pathTimer->start(pathUpdateFreq);
         if (moveSpeedChangeTimer)
             moveSpeedChangeTimer->start(500);
         changeMoveSpeed();
     }
 }
 
-void Enemy::updateAnimation()
-{
-    if (imageIndices.empty())
-        return;
-
-    frameCnt = (frameCnt + 1) % FRAME_CNT;
-    if (frameCnt == 0)
-    {
-        currentFrameInList = (currentFrameInList + 1) % imageIndices.size();
-        currentImageIndex = imageIndices[currentFrameInList];
-    }
-}
 
 void Enemy::changeMoveSpeed()
 {
-    if (!canMove || !AIMoveTimer)
+    if (!data->canMove || !AIMoveTimer)
         return;
 
-    int newSpeed = QRandomGenerator::global()->bounded(speedF.first, speedF.second);
+    int newSpeed = QRandomGenerator::global()->bounded(data->speedF.first, data->speedF.second);
     AIMoveTimer->start(newSpeed);
 }
 
-void Enemy::getNewPath()
+bool Enemy::checkCollisionTarget(int newX, int newY)
 {
-    if (attackTarget == nullptr)
-        return;
 
-    path.clear();
-
-    // 计算敌人中心点在网格中的位置（考虑敌人大小）
-    int enemyCenterX = static_cast<int>((x + width / 2.0) / moveStep);
-    int enemyCenterY = static_cast<int>((y + height / 2.0) / moveStep);
-
-    // 计算目标中心点在网格中的位置
-    int targetCenterX = (attackTarget->getX() + attackTarget->width / 2) / moveStep;
-    int targetCenterY = (attackTarget->getY() + attackTarget->height / 2) / moveStep;
-
-    path = AStar(grid,
-                 std::make_pair(enemyCenterX, enemyCenterY),
-                 std::make_pair(targetCenterX, targetCenterY));
-    pathIndex = 0;
+    QRect enemyRect(newX, newY, data->width, data->height);
+    if (attackTarget != nullptr)
+    {
+        // 检查与目标的碰撞（使用敌人的完整矩形）
+        QRect targetRect(attackTarget->getX(), attackTarget->getY(),
+                         attackTarget->getWidth(), attackTarget->getHeight());
+        if (enemyRect.intersects(targetRect))
+        {
+            // 近战攻击
+            if (data->hasMeleeAttack)
+            {
+                attackTarget->setHP(attackTarget->getHp() - data->damage);
+            }
+            return true;
+        }
+    }
+    return false;
 }
 
-bool Enemy::checkCollision(double newX, double newY)
-{
-    if (attackTarget == nullptr)
-        return false;
-
-    // 检查与目标的碰撞（使用敌人的完整矩形）
-    QRect enemyRect(static_cast<int>(newX), static_cast<int>(newY), width, height);
-    QRect targetRect(attackTarget->getX(), attackTarget->getY(),
-                     attackTarget->width, attackTarget->height);
-
-    if (enemyRect.intersects(targetRect))
-    {
-        // 近战攻击
-        if (hasMeleeAttack)
-        {
-            attackTarget->setHP(attackTarget->getHp() - damage);
-        }
-        return true;
-    }
-
+bool Enemy::checkCollisionObstacle(int newX, int newY){
+    QRect enemyRect(newX, newY, data->width, data->height);
     // 检查与障碍物的碰撞
-    if (obstaclesList != nullptr)
+    if (mapData != nullptr)
     {
-        for (const QRect &obstacle : *obstaclesList)
+        for (auto obstacle:mapData->obstacles)
         {
-            if (enemyRect.intersects(obstacle))
+            QRect obstacleRect(obstacle.pos.x(),obstacle.pos.y(),obstacle.width,obstacle.height);
+            if (enemyRect.intersects(obstacleRect))
             {
                 return true;
             }
@@ -205,51 +161,34 @@ bool Enemy::checkCollision(double newX, double newY)
 
 void Enemy::AIMove()
 {
-    if (!canMove || attackTarget == nullptr)
-        return;
-
-    // 如果路径为空或已到达终点，获取新路径
-    if (path.empty() || pathIndex >= path.size() - 1)
-    {
-        getNewPath();
-        pathIndex = 0;
-        return;
+    if(attackTarget==nullptr||isDead)return;
+    if(x<attackTarget->getX())curState = Right;
+    else curState = Left;
+    if(!data->canMove)return;
+    int step = data->moveStep;
+    int dx = attackTarget->getX()-x;
+    int dy = attackTarget->getY()-y;
+    double dis = std::sqrt(double(dx*dx+dy*dy));
+    if(dis>0.01){
+        dx = dx /dis * step;
+        dy = dy /dis * step;
     }
-
-    pathIndex++;
-
-    // 计算目标位置（将网格坐标转换为实际坐标，并考虑敌人大小使其居中）
-    double targetX = path[pathIndex].first * moveStep - width / 2.0;
-    double targetY = path[pathIndex].second * moveStep - height / 2.0;
-
-    // 检测碰撞
-    if (checkCollision(targetX, targetY))
-    {
-        // 发生碰撞，重新规划路径
-        getNewPath();
-        pathIndex = 0;
-        return;
-    }
-
-    // 更新位置
-    x = targetX;
-    y = targetY;
-
-    // 更新动画（根据移动方向）
-    if (!imageIndices.empty() && imageIndices.size() >= 4)
-    {
-        // 假设图片索引：0-1为右，2-3为左
-        if (attackTarget->getX() > x)
-        {
-            // 向右移动
-            updateAnimation();
+    int newX = static_cast<int>(x+dx);
+    int newY = static_cast<int>(y+dy);
+    int loop = 20;
+    while(checkCollisionObstacle(newX,newY)&&loop--){
+        int dir = QRandomGenerator::global()->bounded(0,10)%2;
+        if(dir == 0){
+            newX = static_cast<int>(newX-dy);
+            newY = static_cast<int>(newY+dx);
         }
-        else if (attackTarget->getX() < x)
-        {
-            // 向左移动
-            updateAnimation();
+        else {
+            newX = static_cast<int>(newX+dy);
+            newY = static_cast<int>(newY-dx);
         }
     }
+    if(loop>0)setPosition(newX,newY);
+    avoidOthers();
 }
 
 void Enemy::launchRangedAttack()
@@ -261,14 +200,14 @@ void Enemy::launchRangedAttack()
         return;
     }
 
-    if (attackTarget == nullptr || bulletData == nullptr)
+    if (attackTarget == nullptr || data->bulletData == nullptr)
         return;
 
     // 计算敌人和目标的中心点（使用double提高精度）
-    double enemyCenterX = x + width / 2.0;
-    double enemyCenterY = y + height / 2.0;
-    double targetCenterX = attackTarget->getX() + attackTarget->width / 2.0;
-    double targetCenterY = attackTarget->getY() + attackTarget->height / 2.0;
+    double enemyCenterX = x + data->width / 2.0;
+    double enemyCenterY = y + data->height / 2.0;
+    double targetCenterX = attackTarget->getX() + attackTarget->getWidth() / 2.0;
+    double targetCenterY = attackTarget->getY() + attackTarget->getHeight()/ 2.0;
 
     // 计算方向向量（使用double）
     double dx = targetCenterX - enemyCenterX;
@@ -280,19 +219,53 @@ void Enemy::launchRangedAttack()
         return;
 
     // 归一化方向向量并乘以子弹速度（保持double精度）
-    double bulletDx = (dx / distance) * bulletSpeed;
-    double bulletDy = (dy / distance) * bulletSpeed;
+    double bulletDx = (dx / distance) * data->bulletData->dmoveDis;
+    double bulletDy = (dy / distance) * data->bulletData->dmoveDis;
 
     // 使用新的Bullet接口创建子弹
     Bullet *bullet = Bullet::createBullet(
-        *bulletData,
+        *(data->bulletData),
         static_cast<int>(enemyCenterX),
         static_cast<int>(enemyCenterY),
-        bulletDx,
-        bulletDy,
+        bulletDx*(*(data->bulletData)).dmoveDis,
+        bulletDy*(*(data->bulletData)).dmoveDis,
         attackTarget,
-        damage);
-
+        data->damage);
+    bullet->setObstaclesList(obstacles);
     bullet->startMove();
     emit createBullet(bullet);
+}
+
+void Enemy::reset(){
+    this->disconnect();   // 清空所有 signal 连接
+    if (AIMoveTimer) AIMoveTimer->stop();
+    if (moveSpeedChangeTimer) moveSpeedChangeTimer->stop();
+    if (attackTimer) attackTimer->stop();
+}
+
+void Enemy::avoidOthers(){
+    float pushX = 0.0f;
+    float pushY = 0.0f;
+    const float minDist = 30.0f;
+    const float minDistSq = minDist * minDist;
+    for( Enemy * other: *allenemies){
+        if(other==this)continue;
+        float dx = this->x - other->x;
+        float dy = this->y - other->y;
+        float distSq = dx * dx + dy * dy;
+        if(distSq < minDistSq && distSq > 0.01f){
+            float dist = std::sqrt(distSq);
+
+            float overlap = (minDist - dist);
+
+            dx /= dist;
+            dy /= dist;
+
+            pushX += dx * overlap *0.8f;
+            pushY += dy * overlap *0.8f;
+        }
+    }
+    if(checkCollisionObstacle(x+pushX,y+pushY))return;
+    this -> x+= pushX;
+    this -> y+= pushY;
 }

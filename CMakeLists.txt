@@ -43,7 +43,7 @@ set(PROJECT_SOURCES
         Enemy.cpp
         Bullet.cpp
         Player.cpp
-        npc.cpp
+
 )
 
 # 添加头文件目录
@@ -65,8 +65,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         Enemy.h
         Bullet.h
         Player.h
-        npc.h
+
         resources.qrc
+        Character.h
+
+
     )
 else()
     if(ANDROID)

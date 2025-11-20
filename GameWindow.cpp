@@ -3,30 +3,22 @@
 #include <vector>
 #include <QMessageBox>
 #include <QDebug>
-#include "findpath.h"
 
-/*
-简化的游戏窗口实现：
-- 数据驱动：所有配置通过GameData传入
-- 模板化：通用的游戏运行逻辑
-- 无硬编码：不包含具体的敌人类型、武器类型等
-- 核心流程：加载数据 -> 初始化定时器 -> 生成敌人 -> 处理玩家控制 -> 处理游戏结束
-*/
+
 
 GameWindow::GameWindow(QWidget *parent) : QWidget(parent), gameData(nullptr)
 {
     // 设置固定大小
-    setFixedSize(1200, 800);
-
-    // 加载图片
-    initPicture();
+    setMinimumSize(800, 600);
 
     // 初始化基础定时器
     movementTimer = new QTimer(this);
     deadTimer = new QTimer(this);
     attackCD = new QTimer(this);
     updateTimer = new QTimer(this);
+    setFocusPolicy(Qt::StrongFocus);
 }
+
 
 void GameWindow::setGameData(GameData *_data)
 {
@@ -47,23 +39,12 @@ void GameWindow::setGameData(GameData *_data)
         player = nullptr;
     }
 
-    for (Enemy *enemy : enemies)
-    {
-        delete enemy;
-    }
-    enemies.clear();
 
     for (Bullet *bullet : bullets)
     {
         Bullet::deleteBullet(bullet);
     }
     bullets.clear();
-
-    for (Enemy *enemy : enemyDeadList)
-    {
-        delete enemy;
-    }
-    enemyDeadList.clear();
 
     // 清理敌人生成定时器
     for (QTimer *timer : enemySpawnTimers)
@@ -80,14 +61,17 @@ void GameWindow::setGameData(GameData *_data)
     // 创建玩家（使用gameData中的PlayerData）
     player = new Player(gameData->playerData, gameData->playerData.generatePos);
 
-    // 设置玩家子弹数据（使用第一个子弹）
-    if (!gameData->bulletDataList.empty())
-    {
-        player->setBulletData(&gameData->bulletDataList[gameData->playerData.bulletId]);
-    }
 
     player->setEnemiesList(&enemies);
-    player->setObstaclesList(&obstacles);
+
+    QList<QRect> *obstacles = new QList<QRect>;
+    for (const auto &obstacle :gameData-> mapData.obstacles)
+    {
+        QRect rect(obstacle.pos.x(), obstacle.pos.y(), obstacle.width, obstacle.height);
+        obstacles->append(rect);
+    }
+    player->setObstaclesList(obstacles);
+
 
     // 连接玩家的子弹创建信号
     connect(player, &Player::createBullet, this, [this](Bullet *bullet)
@@ -116,6 +100,9 @@ void GameWindow::setGameData(GameData *_data)
             { this->update(); });
     updateTimer->start(16);
 
+    Enemy::setAttackTarget(player);
+    Enemy::mapData=&(_data->mapData);
+    Enemy::obstacles=obstacles;
     // 为每个敌人生成配置创建定时器
     for (size_t i = 0; i < gameData->enemySpawnConfigs.size(); i++)
     {
@@ -131,44 +118,18 @@ void GameWindow::setGameData(GameData *_data)
         enemySpawnCounts.push_back(0);
     }
 
-    // 初始化地图和障碍物
-    createMapCache(&gameData->grid);
-    Enemy::setAttackTarget(player);
-
-    // 创建高分辨率网格用于寻路
-    int gridRows = gameData->grid.size();
-    int gridCols = gridRows > 0 ? gameData->grid[0].size() : 0;
-    int highResRows = gridRows * 2;
-    int highResCols = gridCols * 2;
-
-    std::vector<std::vector<int>> highResGrid(highResRows, std::vector<int>(highResCols, 0));
-
-    for (int i = 0; i < gridRows; i++)
-    {
-        for (int j = 0; j < gridCols; j++)
-        {
-            int startX = i * 2;
-            int startY = j * 2;
-            int endX = (i + 1) * 2;
-            int endY = (j + 1) * 2;
-
-            for (int x = startX; x < endX && x < highResRows; x++)
-            {
-                for (int y = startY; y < endY && y < highResCols; y++)
-                {
-                    highResGrid[x][y] = gameData->grid[i][j];
-                }
-            }
-        }
-    }
-
-    Enemy::setGrid(highResGrid);
 
     // 初始化子弹池（只在第一次初始化）
     if (Bullet::bulletsPool.empty())
     {
         Bullet::initBulletsPool(500);
     }
+    Enemy::initEnemiesPool(5000);
+    Enemy::allenemies=&enemies;
+    // 初始化map大小
+    mapHeight=_data->mapData.mapHeight;
+    mapWidth=_data->mapData.mapWidth;
+    createMapCache();
 }
 
 void GameWindow::reset()
@@ -183,23 +144,17 @@ void GameWindow::reset()
         player = nullptr;
     }
 
-    for (Enemy *enemy : enemies)
+    for (Enemy *enemy : *(Enemy::enemiesPool))
     {
         delete enemy;
     }
     enemies.clear();
-
+    enemyDeadList.clear();
     for (Bullet *bullet : bullets)
     {
         Bullet::deleteBullet(bullet);
     }
     bullets.clear();
-
-    for (Enemy *enemy : enemyDeadList)
-    {
-        delete enemy;
-    }
-    enemyDeadList.clear();
 
     // 清理敌人生成定时器
     for (QTimer *timer : enemySpawnTimers)
@@ -217,7 +172,7 @@ void GameWindow::stopGame()
 {
     // 停止所有定时器
     if (movementTimer)
-        movementTimer->stop();
+            movementTimer->stop();
     if (deadTimer)
         deadTimer->stop();
     if (attackCD)
@@ -231,8 +186,39 @@ void GameWindow::stopGame()
         if (timer)
             timer->stop();
     }
+    // 停止PLayer
+    // 停止所有enemy
+    for(auto enemy:enemies){
+        enemy->stop();
+    }
+    // 停止所有bullet
+    for(auto bullet:bullets){
+        bullet->stopMove();
+    }
 }
-
+void GameWindow::startGame()
+{
+    if(movementTimer){
+        movementTimer->start(16);
+    }
+    if(deadTimer){
+        deadTimer->start(500);
+    }
+    if(updateTimer){
+        updateTimer->start(16);
+    }
+    attackCD->start(player->getAttackCD());
+    for (int i=0;i<enemySpawnTimers.size();i++)
+    {
+        enemySpawnTimers[i]->start();
+    }
+    for(auto enemy:enemies){
+        enemy->start();
+    }
+    for(auto bullet:bullets){
+        bullet->startMove();
+    }
+}
 void GameWindow::clearKeyState()
 {
     // 清空按键状态，避免按键残留
@@ -271,14 +257,19 @@ GameWindow::~GameWindow()
     enemySpawnTimers.clear();
 }
 
-QPixmap GameWindow::loadAndProcessImage(const std::string &imagePath, int width, int height)
+QPixmap GameWindow::loadAndProcessImage(const std::string &imagePath, int width=0, int height=0)
 {
     QImage image(imagePath.c_str());                                    // 加载图像文件
     image = image.convertToFormat(QImage::Format_ARGB32_Premultiplied); // 转换为 ARGB 格式，支持透明通道
-    QPixmap original = QPixmap::fromImage(image);                       // 将 QImage 转换为 QPixmap
+    QPixmap original = QPixmap::fromImage(image);
+    if(width!=0){    // 将 QImage 转换为 QPixmap
     QPixmap scaled = original.scaled(width, height, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     scaled.setMask(scaled.createHeuristicMask()); // 创建启发式掩码，用于透明处理
-    return scaled;
+    return scaled;}
+    else {
+        original.setMask(original.createHeuristicMask());
+        return original;
+    }
 }
 void GameWindow::initPicture()
 {
@@ -289,69 +280,60 @@ void GameWindow::initPicture()
     playerImage.clear();
     enemyImages.clear();
     bulletImage.clear();
-    imagePathToIndex.clear();
-
-    int imageIndex = 0;
 
     // 加载玩家图片
     const PlayerData &pData = gameData->playerData;
     for (const auto &path : pData.rightWalkPaths)
     {
-        if (imagePathToIndex.find(path) == imagePathToIndex.end())
-        {
-            playerImage.push_back(loadAndProcessImage(path, pData.width, pData.height));
-            imagePathToIndex[path] = imageIndex++;
-        }
+        playerImage[Right].push_back(loadAndProcessImage(path,pData.width,pData.height));
     }
     for (const auto &path : pData.leftWalkPaths)
     {
-        if (imagePathToIndex.find(path) == imagePathToIndex.end())
-        {
-            playerImage.push_back(loadAndProcessImage(path, pData.width, pData.height));
-            imagePathToIndex[path] = imageIndex++;
-        }
+        playerImage[Left].push_back(loadAndProcessImage(path,pData.width,pData.height));
     }
     for (const auto &path : pData.upWalkPaths)
     {
-        if (imagePathToIndex.find(path) == imagePathToIndex.end())
-        {
-            playerImage.push_back(loadAndProcessImage(path, pData.width, pData.height));
-            imagePathToIndex[path] = imageIndex++;
-        }
+        playerImage[Up].push_back(loadAndProcessImage(path,pData.width,pData.height));
     }
     for (const auto &path : pData.downWalkPaths)
     {
-        if (imagePathToIndex.find(path) == imagePathToIndex.end())
-        {
-            playerImage.push_back(loadAndProcessImage(path, pData.width, pData.height));
-            imagePathToIndex[path] = imageIndex++;
-        }
+        playerImage[Down].push_back(loadAndProcessImage(path,pData.width,pData.height));
     }
+
 
     // 加载敌人图片
     for (const auto &config : gameData->enemySpawnConfigs)
     {
-        for (const auto &path : config.enemyData.imagePaths)
+        enemyImages.push_back(std::map<Direction,std::vector<QPixmap>>());
+        for (const auto &path : config.enemyData.rightWalkPaths)
         {
-            if (imagePathToIndex.find(path) == imagePathToIndex.end())
-            {
-                enemyImages.push_back(loadAndProcessImage(path, config.enemyData.width, config.enemyData.height));
-                imagePathToIndex[path] = imageIndex++;
-            }
+            enemyImages[config.enemyData.enemyID][Right].push_back(loadAndProcessImage(path,config.enemyData.width,config.enemyData.height));
+        }
+        for (const auto &path : config.enemyData.leftWalkPaths)
+        {
+            enemyImages[config.enemyData.enemyID][Left].push_back(loadAndProcessImage(path,config.enemyData.width,config.enemyData.height));
         }
     }
 
     // 加载子弹图片
     for (const auto &bData : gameData->bulletDataList)
     {
+        bulletImage.push_back(std::vector<QPixmap>());
         for (const auto &path : bData.imagePaths)
         {
-            if (imagePathToIndex.find(path) == imagePathToIndex.end())
-            {
-                bulletImage.push_back(loadAndProcessImage(path, bData.width, bData.height));
-                imagePathToIndex[path] = imageIndex++;
-            }
+            bulletImage[bData.bulletID].push_back(loadAndProcessImage(path,bData.width,bData.height));
         }
+    }
+
+    //加载npc图片
+    isGreeting = std::vector<bool>(gameData->npcDatas.size(),false);
+    for(const auto &npc : gameData->npcDatas){
+        npcImage.push_back({{
+            loadAndProcessImage(npc.imagePath,npc.width1,npc.height1),
+            loadAndProcessImage(npc.greetingImagePath,npc.width2,npc.height2)
+        },
+            false
+        });
     }
 }
 void GameWindow::paintEvent(QPaintEvent *event)
@@ -369,28 +351,29 @@ void GameWindow::paintEvent(QPaintEvent *event)
 
     // 绘制玩家（应用摄像机偏移）
     painter.drawPixmap(player->getX() - cameraOffsetX, player->getY() - cameraOffsetY,
-                       playerImage[player->getCurrentImageIndex()]);
+                       playerImage[player->getState()][player->pictureIndex[player->getState()].curIndex]);
 
     // 绘制敌人（应用摄像机偏移）
-    for (Enemy *enemy : enemies)
+    for (int i=0;i<enemies.size();i++)
     {
-        int imageIndex = enemy->getCurrentImageIndex();
-        if (imageIndex >= 0 && imageIndex < enemyImages.size())
-        {
-            painter.drawPixmap(enemy->getX() - cameraOffsetX, enemy->getY() - cameraOffsetY,
-                               enemyImages[imageIndex]);
-        }
+        Enemy *enemy = enemies[i];
+        qDebug() << "enemyImages[state].size=" << enemyImages[enemy->getID()][enemy->getState()].size();
+
+        painter.drawPixmap(enemy->getX() - cameraOffsetX, enemy->getY() - cameraOffsetY,
+                               enemyImages[enemy->getID()][enemy->getState()][enemy->updateAnimation()]);
+    }
+
+    //绘制npc（应用摄像机偏移）
+    for(int i=0;i<npcImage.size();i++){
+        painter.drawPixmap(gameData->npcDatas[i].pos.x() - cameraOffsetX,gameData->npcDatas[i].pos.y() - cameraOffsetY,
+                           npcImage[i].second?npcImage[i].first.second:npcImage[i].first.first);
     }
 
     // 绘制子弹（应用摄像机偏移）
     for (Bullet *bullet : bullets)
     {
-        int imageIndex = bullet->getCurrentImageIndex();
-        if (imageIndex >= 0 && imageIndex < bulletImage.size())
-        {
-            painter.drawPixmap(bullet->getX() - cameraOffsetX, bullet->getY() - cameraOffsetY,
-                               bulletImage[imageIndex]);
-        }
+        painter.drawPixmap(bullet->getX()-cameraOffsetX,bullet->getY()-cameraOffsetY,
+                           bulletImage[bullet->getID()][bullet->updatePictureIndex()]);
     }
 
     // 绘制玩家血条（固定在屏幕上，不受摄像机影响）
@@ -428,8 +411,21 @@ void GameWindow::keyReleaseEvent(QKeyEvent *event)
         return;
     keyPressed.remove(event->key());
 }
+double dis(int x1, int y1, int x2, int y2)
+{
+    return std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) );
+}
+
 void GameWindow::handleMovement(int step, int diagonalStep)
 {
+    //检查是否与npc相遇
+    for(int i=0;i<gameData->npcDatas.size();i++){
+        if(dis(player->getX(),player->getY(),gameData->npcDatas[i].pos.x(),gameData->npcDatas[i].pos.y())<player->getAttackRange()/3){
+            npcImage[i].second=true;
+            handleNPCGreeting(i);
+            break;
+        }else npcImage[i].second = false;
+    }
 
     bool up = keyPressed.contains(Qt::Key_W);
     bool down = keyPressed.contains(Qt::Key_S);
@@ -475,12 +471,12 @@ void GameWindow::handleMovement(int step, int diagonalStep)
     // 障碍物检测
     QPoint playerPos(player->getX(), player->getY());
     QPoint newPlayerPos(playerPos.x() + dx, playerPos.y() + dy);
-    QRect newPlayerRect(newPlayerPos.x(), newPlayerPos.y(), player->width, player->height);
+    QRect newPlayerRect(newPlayerPos.x(), newPlayerPos.y(), player->getWidth(), player->getHeight());
     bool isCollided = false;
 
     // 边界检测
-    if (newPlayerRect.x() < 0 || newPlayerRect.x() + player->width > mapWidth ||
-        newPlayerRect.y() < 0 || newPlayerRect.y() + player->height > mapHeight)
+    if (newPlayerRect.x() < 0 || newPlayerRect.x() + player->getWidth() > mapWidth ||
+        newPlayerRect.y() < 0 || newPlayerRect.y() + player->getHeight() > mapHeight)
     {
         isCollided = true;
     }
@@ -488,9 +484,9 @@ void GameWindow::handleMovement(int step, int diagonalStep)
     // 障碍物检测
     if (!isCollided)
     {
-        for (const QRect &obstacle : obstacles)
+        for(const auto &obstacle :gameData->mapData.obstacles)
         {
-            if (newPlayerRect.intersects(obstacle))
+            if (newPlayerRect.intersects(QRect(obstacle.pos.x(), obstacle.pos.y(), obstacle.width, obstacle.height)))
             {
                 isCollided = true;
                 break;
@@ -500,25 +496,32 @@ void GameWindow::handleMovement(int step, int diagonalStep)
 
     if (!isCollided)
         player->setPosition(newPlayerPos.x(), newPlayerPos.y());
-
     if (left && !right)
-        player->updateAnimation(Player::Left);
+    {player->setState(Left);
+    }
     else if ((right && !left) || down)
-        player->updateAnimation(Player::Right);
-    else if (up)
-        player->updateAnimation(Player::Up);
+        player->setState(Right);
+    else if (up && !down)
+        player->setState(Up);
+    else if(!up &&down)player->setState(Down);
+    if(left||right||up||down)player->updateAnimation();
 }
 
 void GameWindow::generateEnemy(int enemyConfigIndex)
 {
+
     // 检查配置索引是否有效
     if (enemyConfigIndex < 0 || enemyConfigIndex >= gameData->enemySpawnConfigs.size())
     {
         qDebug() << "Error: enemyConfigIndex" << enemyConfigIndex << "out of range";
         return;
     }
+        qDebug() << "generateEnemy called, index:" << enemyConfigIndex;
 
-    const EnemySpawnConfig &config = gameData->enemySpawnConfigs[enemyConfigIndex];
+    EnemySpawnConfig &config = gameData->enemySpawnConfigs[enemyConfigIndex];
+        qDebug() << "spawn freq =" << config.spawnFreq
+                 << "totalNum =" << config.totalNum
+                 << "spawned =" << enemySpawnCounts[enemyConfigIndex];
 
     // 检查是否达到生成上限
     if (enemySpawnCounts[enemyConfigIndex] >= config.totalNum)
@@ -530,26 +533,11 @@ void GameWindow::generateEnemy(int enemyConfigIndex)
     // 更新计数
     enemySpawnCounts[enemyConfigIndex]++;
 
-    // 随机选择生成位置
-    if (config.spawnPositions.empty())
-    {
-        qDebug() << "Error: No spawn positions for enemy config" << enemyConfigIndex;
+    Enemy *newEnemy =Enemy::createEnemy(config);
+    if (!newEnemy) {
+        qDebug() << "createEnemy FAILED";
         return;
     }
-
-    int randomIndex = rand() % config.spawnPositions.size();
-    QPoint pos = config.spawnPositions[randomIndex];
-
-    // 创建敌人
-    Enemy *newEnemy = new Enemy(config.enemyData, pos);
-    newEnemy->setObstaclesList(&obstacles);
-
-    // 如果是远程攻击敌人，设置子弹数据
-    if (config.enemyData.hasRangedAttack && config.enemyData.bulletId < gameData->bulletDataList.size())
-    {
-        newEnemy->setBulletData(&gameData->bulletDataList[config.enemyData.bulletId]);
-    }
-
     enemies.append(newEnemy);
 
     // 连接敌人的子弹创建信号
@@ -558,11 +546,6 @@ void GameWindow::generateEnemy(int enemyConfigIndex)
         bullets.append(bullet);
         connect(bullet, &Bullet::hitSth, this, [this, bullet]()
                 { bullets.removeOne(bullet); }); });
-}
-
-bool isInRange(int x1, int y1, int x2, int y2, int range)
-{
-    return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) <= range * range;
 }
 
 void GameWindow::handlePlayerAttack()
@@ -576,16 +559,20 @@ void GameWindow::handlePlayerAttack()
 
     // 查找范围内的敌人
     Enemy *target = nullptr;
+    double minDis=-1.0;
     for (Enemy *enemy : enemies)
     {
-        if (isInRange(player->getX(), player->getY(), enemy->getX(), enemy->getY(), gameData->playerData.attackRange))
-        {
-            target = enemy;
-            break;
+        if(minDis==-1.0){minDis=dis(player->getX(),player->getY(),enemy->getX(),enemy->getY());target=enemy;}
+        else {
+            double _dis = dis(player->getX(),player->getY(),enemy->getX(),enemy->getY());
+            if (minDis>_dis){
+                minDis=_dis;
+                target=enemy;
+            }
         }
     }
 
-    if (!target)
+    if (!target||minDis>player->getAttackRange())
         return;
 
     // 使用Player::attack方法
@@ -626,6 +613,7 @@ void GameWindow::handleEnemyDead()
     {
         if ((*it)->getHp() <= 0)
         {
+            (*it)->isDead=true;
             (*it)->setPosition(0, 0);
             (*it)->stopMove();
             enemyDeadList.append(*it);
@@ -647,66 +635,30 @@ void GameWindow::handlePlayerDead()
     }
 }
 
-void GameWindow::createMapCache(std::vector<std::vector<int>> *grid)
+void GameWindow::createMapCache()
 {
-    int tileWidth = 10;
-    int tileHeight = 10;
-
-    // 计算地图实际大小（扩大2倍）
-    mapWidth = grid->size() * tileWidth * 2;
-    mapHeight = grid->at(0).size() * tileHeight * 2;
-
-    floorTile = QPixmap(":/images/floor.png").scaled(200, 200);                            // 地板瓦片也放大2倍
-    obstacleTile = QPixmap(":/images/Obstacle.png").scaled(tileWidth * 2, tileHeight * 2); // 障碍物放大2倍
-
-    // 创建障碍物列表（坐标也放大2倍）
-    for (int i = 0; i < grid->size(); ++i)
+    //绘制背景
+    mapCache = QPixmap(loadAndProcessImage( gameData->mapData.backgroundImgPath));
+    if (mapCache.isNull())
     {
-        for (int j = 0; j < grid->at(i).size(); ++j)
+        qDebug() << "Error loading map background image:" << gameData->mapData.backgroundImgPath;
+        return;
+    }
+    // 绘制障碍物
+    for (const auto &obstacle :gameData-> mapData.obstacles)
+    {
+        QRect rect(obstacle.pos.x(), obstacle.pos.y(), obstacle.width, obstacle.height);
+        // 加载障碍物图片
+        QPixmap obstacleImg=loadAndProcessImage(obstacle.imagePath,obstacle.width,obstacle.height);
+        if (obstacleImg.isNull())
         {
-            if ((*grid)[i][j])
-            {
-                obstacles.append(QRect(i * 20, j * 20, 20, 20)); // 放大2倍
-            }
+            qDebug() << "Error loading obstacle image:" << obstacle.imagePath;
+            continue;
         }
+        QPainter painter(&mapCache);
+        painter.drawPixmap(obstacle.pos.x(),obstacle.pos.y(), loadAndProcessImage(obstacle.imagePath,obstacle.width,obstacle.height));
     }
 
-    mapCache = QPixmap(mapWidth, mapHeight);
-    mapCache.fill(Qt::transparent); // 填充透明背景
-    QPainter painter(&mapCache);
-
-    // 绘制地板（放大2倍，数量也增加）
-    for (int i = 0; i < mapWidth / 200 + 1; i++)
-    {
-        for (int j = 0; j < mapHeight / 200 + 1; j++)
-        {
-            painter.drawPixmap(i * 200, j * 200, floorTile);
-        }
-    }
-
-    // 绘制障碍物（放大2倍）
-    for (int i = 0; i < grid->size(); ++i)
-    {
-        for (int j = 0; j < grid->at(i).size(); ++j)
-        {
-            if ((*grid)[i][j] == 1)
-            { // 如果是墙壁
-                painter.drawPixmap(i * 20, j * 20, obstacleTile);
-            }
-        }
-    }
-
-    // 根据enemyData[2]绘制魔法阵（位置也放大2倍）
-    for (int i = 0; i < gameData->enemyData[2].totalNum; i++)
-    {
-        magicCircleList.append(QRect(gameData->enemyData[2].generatePos[i].x() * 2,
-                                     gameData->enemyData[2].generatePos[i].y() * 2, 100, 100)); // 放大2倍
-    }
-    magicCircleImage = loadAndProcessImage(":/images/MagicCircle.png", 100, 100); // 魔法阵也放大2倍
-    for (int i = 0; i < magicCircleList.size(); i++)
-    {
-        painter.drawPixmap(magicCircleList[i].x(), magicCircleList[i].y(), magicCircleImage);
-    }
 }
 
 // 更新摄像机位置，使玩家居中
@@ -716,8 +668,8 @@ void GameWindow::updateCamera()
         return;
 
     // 计算摄像机偏移，使玩家在屏幕中心
-    cameraOffsetX = player->getX() + player->width / 2 - width() / 2;
-    cameraOffsetY = player->getY() + player->height / 2 - height() / 2;
+    cameraOffsetX = player->getX() + player->getWidth() / 2 - width() / 2;
+    cameraOffsetY = player->getY() + player->getHeight() / 2 - height() / 2;
 
     // 限制摄像机不超出地图边界
     if (cameraOffsetX < 0)
@@ -734,4 +686,15 @@ void GameWindow::closeEvent(QCloseEvent *event)
 {
     QWidget::closeEvent(event);
     this->deleteLater();
+}
+
+void GameWindow::handleNPCGreeting(int id){
+    if(isGreeting[id]==true)return;
+    if(keyPressed.contains(Qt::Key_Enter)){
+        emit plotStart(id);
+    npcData &npc = gameData->npcDatas[id];
+    player->upgrade(npc.dhp,npc.ddamage,npc.dattackRange,npc.dattackCD,npc.dmoveStep,npc.bulletData);
+    isGreeting[id]=true;
+    stopGame();
+    }
 }

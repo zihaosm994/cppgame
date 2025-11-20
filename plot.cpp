@@ -1,58 +1,57 @@
 #include "plot.h"
 #include <QMouseEvent>
 #include <QPainter>
+#include <QDebug> // 用于调试输出
 
 Plot::Plot(QWidget *parent) : QWidget(parent)
 {
-    // 设置固定大小（放大到1200x800）
-    setFixedSize(1200, 800);
+    // 设置固定大小
+    setFixedSize(800, 600);
 
     // 初始化文本浏览器
-    textBrowser = new QTextBrowser(this);       // 创建 QTextBrowser 控件
-    textBrowser->setGeometry(0, 650, 1200, 150); // 设置文本浏览器的位置和大小（放大）
-    // 设置为黑色半透明
-    textBrowser->setStyleSheet("background-color: rgba(0, 0, 0, 128);");
-    // 设置文本靠左对齐
+    textBrowser = new QTextBrowser(this);
+    // 这里的几何位置根据你的窗口大小调整，放在底部
+    textBrowser->setGeometry(0,height()*4/5,width(),height()/5);
+
+    // 设置为黑色半透明 (R, G, B, Alpha)
+    textBrowser->setStyleSheet("background-color: rgba(0, 0, 0, 150); border: none; padding: 10px;");
     textBrowser->setAlignment(Qt::AlignLeft);
-    textBrowser->setReadOnly(true); // 设置文本浏览器为只读模式，不允许编辑
+    textBrowser->setReadOnly(true);
 
     // 设置打印定时器
     typeTimer = new QTimer(this);
-    connect(typeTimer, &QTimer::timeout, this, [this]() { // 连接定时器的超时信号到一个 lambda 函数，用于逐字显示文本
+    connect(typeTimer, &QTimer::timeout, this, [this]() {
         if (currentCharIndex < currentText.length())
-        {                                                                 // 如果还有字符要显示
-            textBrowser->setText(currentText.left(currentCharIndex + 1)); // 在文本浏览器中追加当前字符
-            currentCharIndex++;                                           // 增加当前字符索引
+        {
+            // 追加一个字符
+            textBrowser->setText(currentText.left(currentCharIndex + 1));
+            currentCharIndex++;
         }
         else
-        {                      // 如果没有字符要显示了
-            typeTimer->stop(); // 停止定时器
+        {
+            typeTimer->stop();
         }
     });
 
     // 设置字体
-    QFont font;            // 创建 QFont 对象
-    font.setPointSize(16); // 设置字体大小为 16 像素
-    font.setBold(false);   // 设置字体为非粗体
-    // 设置字体样式为
-    font.setFamily("SimSun");
-    textBrowser->setFont(font); // 设置文本浏览器的字体为 font
-    // 设置文本颜色
-    textBrowser->setTextColor(Qt::white); // 设置文本颜色为白色
+    QFont font;
+    font.setPointSize(20); // 稍微调大一点字体以适应1200的宽度
+    font.setBold(true);    // 通常剧情文字加粗更易读
+    font.setFamily("SimSun"); // 或者 "Microsoft YaHei"
+    textBrowser->setFont(font);
+    textBrowser->setTextColor(Qt::white);
 
-    setFocusPolicy(Qt::StrongFocus);          // 设置窗口的焦点策略为强焦点
-    textBrowser->setFocusPolicy(Qt::NoFocus); // 防止抢夺窗口焦点
+    setFocusPolicy(Qt::StrongFocus);
+    textBrowser->setFocusPolicy(Qt::NoFocus);
 }
 
 Plot::~Plot()
 {
-    // 不需要手动删除 textBrowser 和 typeTimer，Qt 的父子关系会自动管理
 }
 
-void Plot::setPlotContent(std::vector<std::string> *textList, std::string bgPath)
+void Plot::setPlotContent(std::vector<std::pair<std::string, std::string>>* plotContent)
 {
-    this->textList = *textList;
-    this->bgPath = bgPath;
+    this->plotContent = plotContent;
     init();
 }
 
@@ -66,35 +65,48 @@ void Plot::reset()
     {
         typeTimer->stop();
     }
+    // 可以在这里设置一个默认背景，或者清空背景
+    backgroundImage = QPixmap();
+    update();
 }
+
 void Plot::init()
 {
-    // 设置背景图片
-    backgroundImage.load(bgPath.c_str());                                                              // 加载背景图片
-    backgroundImage = backgroundImage.scaled(800, 600, Qt::KeepAspectRatio, Qt::SmoothTransformation); // 缩放背景图片以适应窗口大小
+    if (!plotContent || plotContent->empty()) return;
 
-    showNextText(); // 显示第一个文本
+    // 直接调用 showNextText 来加载第一帧（图片+文字），避免代码重复
+    showNextText();
+
     QTimer::singleShot(100, this, [this]()
                        {
-                           setFocus(); // 设置窗口焦点
+                           setFocus(); // 确保窗口获得焦点，以便接收键盘事件
                        });
 }
+
 void Plot::keyPressEvent(QKeyEvent *event)
 {
-    QWidget::keyPressEvent(event);
+    // 优先处理空格和回车
     if (event->key() == Qt::Key_Space || event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return)
-    { // 如果按下的是空格键或回车键
+    {
         if (typeTimer->isActive())
-        {                                      // 如果定时器正在运行
-            typeTimer->stop();                 // 停止定时器
-            textBrowser->setText(currentText); // 显示当前文本
+        {
+            // 如果字还没打完，用户按下按键，则直接显示全部文本
+            typeTimer->stop();
+            textBrowser->setText(currentText);
+            currentCharIndex = currentText.length(); // 更新索引到最后
         }
         else
         {
-            showNextText(); // 显示下一个文本
+            // 如果字已经打完，显示下一句
+            showNextText();
         }
     }
+    else
+    {
+        QWidget::keyPressEvent(event);
+    }
 }
+
 void Plot::keyReleaseEvent(QKeyEvent *event)
 {
     QWidget::keyReleaseEvent(event);
@@ -102,27 +114,61 @@ void Plot::keyReleaseEvent(QKeyEvent *event)
 
 void Plot::paintEvent(QPaintEvent *event)
 {
-    QPainter painter(this);                    // 创建 QPainter 对象，用于绘制窗口内容
-    painter.drawPixmap(0, 0, backgroundImage); // 绘制背景图片
+    QPainter painter(this);
+    // 只有图片加载成功才绘制
+    if (!backgroundImage.isNull()) {
+        painter.drawPixmap(0, 0, backgroundImage);
+    } else {
+        // 如果没有图片，可以填充黑色背景
+        painter.fillRect(rect(), Qt::black);
+    }
 }
 
 void Plot::showNextText()
 {
-    if (currentTextIndex < textList.size())
-    { // 如果还有文本要显示
-        currentText = QString::fromStdString(textList.at(currentTextIndex));
+    // 安全检查
+    if (!plotContent) return;
+
+    if (currentTextIndex < plotContent->size())
+    {
+        // 1. 获取当前的数据对 (图片路径, 文本内容)
+        std::pair<std::string, std::string> currentData = (*plotContent)[currentTextIndex];
+        std::string imgPath = currentData.first;
+        std::string txtContent = currentData.second;
+
+        // 2. 加载并处理图片
+        bool loadSuccess = backgroundImage.load(QString::fromStdString(imgPath));
+        if (loadSuccess) {
+            // 缩放到窗口大小 (1200x800)，保持比例还是拉伸看你需求
+            // 这里使用 IgnoreAspectRatio 拉伸铺满，或者 KeepAspectRatioByExpanding 裁剪铺满
+            backgroundImage = backgroundImage.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        } else {
+            qDebug() << "Failed to load image:" << QString::fromStdString(imgPath);
+        }
+
+        // 触发重绘，更新背景
+        update();
+
+        // 3. 处理文本打字机效果
+        currentText = QString::fromStdString(txtContent);
         currentCharIndex = 0;
         textBrowser->clear();
-        typeTimer->start(50); // 每50ms显示一个字（可根据需要调整）
+
+        // 启动打字机
+        typeTimer->start(50);
+
+        // 4. 索引指向下一条
         currentTextIndex++;
     }
     else
-    {                        // 如果没有文本要显示了
-        emit plotFinished(); // 发送剧情结束信号
+    {
+        // 剧情结束
+        emit plotFinished();
     }
 }
+
 void Plot::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
-    setFocus(); // 设置窗口焦点
+    setFocus();
 }

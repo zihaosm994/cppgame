@@ -30,5 +30,6 @@
         <file>images/roxy/LeftWalk2.png</file>
         <file>images/roxy/RightWalk1.png</file>
         <file>images/roxy/RightWalk2.png</file>
+        <file>images/bg.png</file>
     </qresource>
 </RCC>

@@ -3,36 +3,29 @@
 #include "Bullet.h"
 #include "Data.h"
 #include <cmath>
+#include <qobject>
 
 Player::Player(const PlayerData &data, QPoint pos, QObject *parent)
-    : QObject(parent),
+    :   Character(parent),
       x(pos.x()), y(pos.y()),
       width(data.width), height(data.height),
-      hp(data.hp), playerId(data.playerId),
+      hp(data.hp),
       moveStep(data.moveStep),
-      rightWalkIndices(data.rightWalkIndices),
-      leftWalkIndices(data.leftWalkIndices),
-      upWalkIndices(data.upWalkIndices),
-      downWalkIndices(data.downWalkIndices),
-      currentImageIndex(0), currentFrameInList(0),
-      FRAME_CNT(data.frameCnt), frameCnt(0),
-      currentDirection(Right),
       damage(data.damage), attackCD(data.attackCD),
-      attackRange(data.attackRange), bulletId(data.bulletId),
-      bulletSpeed(data.bulletSpeed),
-      attackReady(true), bulletData(nullptr),
+      attackRange(data.attackRange),
+      attackReady(true), bulletData(data.bulletData),
       enemiesList(nullptr), obstaclesList(nullptr)
 {
-    // 初始化当前图片索引（默认使用右走的第一帧）
-    if (!rightWalkIndices.empty())
-    {
-        currentImageIndex = rightWalkIndices[0];
-    }
-
     // 初始化攻击冷却定时器
     attackCDTimer = new QTimer(this);
     attackCDTimer->setSingleShot(true);
     connect(attackCDTimer, &QTimer::timeout, this, &Player::onAttackCDTimeout);
+    // 初始化pictureIndex
+    curState=Up;
+    pictureIndex[Up]=PictureIndex(0,static_cast<int>(data.upWalkPaths.size()));
+    pictureIndex[Right]=PictureIndex(0,static_cast<int>(data.rightWalkPaths.size()));
+    pictureIndex[Down]=PictureIndex(0,static_cast<int>(data.downWalkPaths.size()));
+    pictureIndex[Left]=PictureIndex(0,static_cast<int>(data.leftWalkPaths.size()));
 }
 
 Player::~Player()
@@ -43,6 +36,7 @@ Player::~Player()
         delete attackCDTimer;
     }
     this->disconnect();
+    delete obstaclesList;
 }
 
 void Player::setPosition(double newX, double newY)
@@ -56,46 +50,6 @@ void Player::setHP(int newHp)
     hp = newHp;
 }
 
-void Player::updateAnimation(Direction dir)
-{
-    currentDirection = dir;
-
-    // 更新帧计数
-    frameCnt = (frameCnt + 1) % FRAME_CNT;
-    if (frameCnt == 0)
-    {
-        // 根据方向选择对应的图片索引列表
-        std::vector<int> *currentIndices = nullptr;
-
-        switch (dir)
-        {
-        case Up:
-            if (!upWalkIndices.empty())
-                currentIndices = &upWalkIndices;
-            break;
-        case Down:
-            if (!downWalkIndices.empty())
-                currentIndices = &downWalkIndices;
-            break;
-        case Left:
-            if (!leftWalkIndices.empty())
-                currentIndices = &leftWalkIndices;
-            break;
-        case Right:
-            if (!rightWalkIndices.empty())
-                currentIndices = &rightWalkIndices;
-            break;
-        }
-
-        // 更新图片索引
-        if (currentIndices != nullptr && !currentIndices->empty())
-        {
-            currentFrameInList = (currentFrameInList + 1) % currentIndices->size();
-            currentImageIndex = (*currentIndices)[currentFrameInList];
-        }
-    }
-}
-
 bool Player::canAttack() const
 {
     return attackReady;
@@ -103,14 +57,14 @@ bool Player::canAttack() const
 
 void Player::attack(Enemy *target)
 {
-    if (!attackReady || target == nullptr || bulletData == nullptr)
+    if (!attackReady || target == nullptr || bulletData.empty())
         return;
 
     // 计算玩家和目标的中心点（使用double提高精度）
-    double playerCenterX = x + width / 2.0;
-    double playerCenterY = y + height / 2.0;
-    double targetCenterX = target->getX() + target->getWidth() / 2.0;
-    double targetCenterY = target->getY() + target->getHeight() / 2.0;
+    double playerCenterX = x + (double)width / 2.0;
+    double playerCenterY = y + (double)height / 2.0;
+    double targetCenterX = target->getX() + (double)target->getWidth() / 2.0;
+    double targetCenterY = target->getY() + (double)target->getHeight() / 2.0;
 
     // 计算距离
     double dx = targetCenterX - playerCenterX;
@@ -125,17 +79,26 @@ void Player::attack(Enemy *target)
     if (distance < 0.001)
         return;
 
-    // 归一化方向向量并乘以子弹速度（保持double精度）
-    double bulletDx = (dx / distance) * bulletSpeed;
-    double bulletDy = (dy / distance) * bulletSpeed;
-
+    double Dx = (dx / distance);
+    double Dy = (dy / distance);
     // 创建子弹
+    int num = bulletData.size();
+    float baseAngle = std::atan2(Dy,Dx);
+    float spreadAngle = (M_PI / 6);
+    if(num>1)spreadAngle/=(num-1);
+    for(int i=(-1)*num+1;i<num;i++){
+        // 归一化方向向量并乘以子弹速度（保持double精度）
+        float angle = baseAngle + spreadAngle * i;
+        Dx = std::cos(angle);
+        Dy = std::sin(angle);
+
+
     Bullet *bullet = Bullet::createBullet(
-        *bulletData,
+        bulletData[std::abs(i)],
         static_cast<int>(playerCenterX),
         static_cast<int>(playerCenterY),
-        bulletDx,
-        bulletDy,
+            Dx*bulletData[std::abs(i)].dmoveDis,
+        Dy*bulletData[std::abs(i)].dmoveDis,
         target,
         damage);
 
@@ -144,7 +107,7 @@ void Player::attack(Enemy *target)
     bullet->setObstaclesList(obstaclesList);
 
     bullet->startMove();
-    emit createBullet(bullet);
+    emit createBullet(bullet);}
 
     // 开始冷却
     attackReady = false;
@@ -161,4 +124,9 @@ void Player::resetAttackCD()
 void Player::onAttackCDTimeout()
 {
     attackReady = true;
+}
+
+int Player::updateAnimation(){
+    pictureIndex[curState].curIndex=(pictureIndex[curState].curIndex+1)%pictureIndex[curState].maxCnt;
+    return pictureIndex[curState].curIndex;
 }
