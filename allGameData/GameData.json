@@ -4,7 +4,10 @@
     "width": 60,
     "height": 90,
     "moveStep": 3,
-    "generatePos": [100, 100],
+    "generatePos": [
+      100,
+      100
+    ],
     "damage": 20,
     "attackCD": 200,
     "attackRange": 600,
@@ -70,7 +73,8 @@
       "canMove": true,
       "moveStep": 2,
       "speedF": [
-        100, 200
+        100,
+        200
       ],
       "pathUpdateFreq": 500,
       "hasMeleeAttack": true,
@@ -99,9 +103,18 @@
       "spawnFreq": 1000,
       "totalNum": 20,
       "spawnPositions": [
-        [800, 800],
-        [1200, 800],
-        [800, 600]
+        [
+          800,
+          800
+        ],
+        [
+          1200,
+          800
+        ],
+        [
+          800,
+          600
+        ]
       ]
     }
   ],
@@ -111,7 +124,10 @@
     "backgroundImgPath": ":/images/bg.png",
     "obstacles": [
       {
-        "pos": [200, 200],
+        "pos": [
+          200,
+          200
+        ],
         "width": 100,
         "height": 100,
         "imagePath": ":/images/Obstacle.png"
@@ -168,12 +184,105 @@
       "greetingImagePath": ":/images/MagicCircle.png",
       "width2": 40,
       "height2": 40,
-      "pos": [400, 400],
-      "dhp": 100,
+      "pos": [
+        400,
+        400
+      ],
+      "dhp": 0,
+      "ddamage": 0,
+      "dattackRange": 50,
+      "dattackCd": 0,
+      "dmoveStep": 0
+    },
+    {
+      "npcId": 1,
+      "imagePath": ":/images/RoxyWhole.png",
+      "width1": 50,
+      "height1": 50,
+      "greetingImagePath": ":/images/MagicCircle.png",
+      "width2": 40,
+      "height2": 40,
+      "pos": [
+        700,
+        700
+      ],
+      "dhp": 1000,
       "ddamage": 0,
       "dattackRange": 0,
       "dattackCd": 0,
       "dmoveStep": 0
+    },
+    {
+      "npcId": 2,
+      "imagePath": ":/images/RoxyWhole.png",
+      "width1": 50,
+      "height1": 50,
+      "greetingImagePath": ":/images/MagicCircle.png",
+      "width2": 40,
+      "height2": 40,
+      "pos": [
+        100,
+        900
+      ],
+      "dhp": 0,
+      "ddamage": 5,
+      "dattackRange": 0,
+      "dattackCd": 30,
+      "dmoveStep": 0
+    },
+    {
+      "npcId": 3,
+      "imagePath": ":/images/RoxyWhole.png",
+      "width1": 50,
+      "height1": 50,
+      "greetingImagePath": ":/images/MagicCircle.png",
+      "width2": 40,
+      "height2": 40,
+      "pos": [
+        1650,
+        600
+      ],
+      "dhp": 0,
+      "ddamage": 10,
+      "dattackRange": 0,
+      "dattackCd": 0,
+      "dmoveStep": 0
+    },
+    {
+      "npcId": 4,
+      "imagePath": ":/images/RoxyWhole.png",
+      "width1": 50,
+      "height1": 50,
+      "greetingImagePath": ":/images/MagicCircle.png",
+      "width2": 40,
+      "height2": 40,
+      "pos": [
+        1900,
+        100
+      ],
+      "dhp": 0,
+      "ddamage": 0,
+      "dattackRange": 0,
+      "dattackCd": 50,
+      "dmoveStep": 0
+    },
+    {
+      "npcId": 5,
+      "imagePath": ":/images/RoxyWhole.png",
+      "width1": 50,
+      "height1": 50,
+      "greetingImagePath": ":/images/MagicCircle.png",
+      "width2": 40,
+      "height2": 40,
+      "pos": [
+        1500,
+        1500
+      ],
+      "dhp": 0,
+      "ddamage": 0,
+      "dattackRange": 0,
+      "dattackCd": 0,
+      "dmoveStep": 1
     }
   ]
 }

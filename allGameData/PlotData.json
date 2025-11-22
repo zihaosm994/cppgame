@@ -3,11 +3,173 @@
     [
       {
         "image_path": ":/images/plot_2BG.png",
-        "text": "This is the first dialogue text..."
+        "text": "不知名哈基米：你终于来了，拿上这个吧"
       },
       {
         "image_path": ":/images/plot_2BG.png",
-        "text": "This is the second dialogue text..."
+        "text": "我： 你认识我吗？为什么要给我这个？"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "不知名哈基米：先拿着吧"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "收下了“小白手套”"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "我：欸呦喂小白手套"
+      }
+    ],
+    [
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "苹果猫：真是一对苦命鸳鸯啊"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "我：你在看什么？"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "苹果猫：多说无益，自己去看"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "获得了“350234”和“350235”"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "我：看了一下还真不是乱画的……真是一对苦命鸳鸯啊"
+      }
+    ],
+    [
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "忍者：少基米，我看你哈根惊奇，不如我传你一些忍术如何 "
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "我：请赐教"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "忍者：看好了"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "忍者：影分身十字斩"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "忍者：岚刀一直切"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "忍者：一刀一刀燃烧刀"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "看完了忍术，你觉得受益匪浅"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "我：握握手，握握双手"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "忍者：握握手，握握双手"
+      }
+    ],
+    [
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "happy猫：happy~happy~happy~  "
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "我：happy~happy~happy~"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "happy猫：happy~happy~happy~happy~happy~"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "我：happy~happy~happy~happy~happy~"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "…………"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "你不自觉地跟着happy猫唱了起来"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "心中涌现出了力量"
+      }
+    ],
+    [
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "河移位猫：何意味？  "
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "我：何意味是什么意思？"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "河移位猫：对"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "我：何意味？"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "河移位猫：何意味？"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "我：何意味？"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "你突然领悟了何意味的意味，获得了“何意味”"
+      }
+    ],
+    [
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "香蕉猫：我最近新学了一个咒语可以增加移速，你想学的话我可以教你"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "我：好啊"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "香蕉猫：哈基米莫那没撸多，阿西嘎哈呀库娜鲁，跟着念一遍"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "我：哈基米莫那没撸多，阿西嘎哈呀库娜鲁"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "河移位猫：何意味？"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "嘴里突然出现了蜂蜜水的味道"
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "你感觉自己的身体更轻便了"
       }
     ]
   ]
