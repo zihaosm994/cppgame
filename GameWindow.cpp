@@ -1,9 +1,10 @@
 #include "GameWindow.h"
 #include <QPoint>
+#include <qlabel.h>
 #include <vector>
 #include <QMessageBox>
 #include <QDebug>
-
+#include <qboxlayout.h>
 
 
 GameWindow::GameWindow(QWidget *parent) : QWidget(parent), gameData(nullptr)
@@ -16,6 +17,7 @@ GameWindow::GameWindow(QWidget *parent) : QWidget(parent), gameData(nullptr)
     deadTimer = new QTimer(this);
     attackCD = new QTimer(this);
     updateTimer = new QTimer(this);
+    powerEnemy = new QTimer(this);
     setFocusPolicy(Qt::StrongFocus);
 }
 
@@ -28,7 +30,8 @@ void GameWindow::setGameData(GameData *_data)
     }
 
     gameData = _data;
-
+    taskList = _data->taskList;
+    bossNum = _data->bossNum;
     // 停止所有定时器
     stopGame();
 
@@ -81,6 +84,15 @@ void GameWindow::setGameData(GameData *_data)
                 { bullets.removeOne(bullet); }); });
 
     // 初始化定时器
+    disconnect(powerEnemy,nullptr,this,nullptr);
+    connect(powerEnemy,&QTimer::timeout,this,[this](){
+        for(auto config: gameData->enemySpawnConfigs){
+            config.enemyData.damage *= 1.1;
+            config.enemyData.hp *= 1.1;
+            QMessageBox::information(this, "危险报警！", "敌人加强了！");
+        }
+    });
+    powerEnemy->start(60000);
     disconnect(movementTimer, nullptr, this, nullptr);
     connect(movementTimer, &QTimer::timeout, this, [this]()
             { handleMovement(gameData->playerData.moveStep, gameData->playerData.moveStep * 7 / 10); });
@@ -105,8 +117,7 @@ void GameWindow::setGameData(GameData *_data)
     Enemy::obstacles=obstacles;
     // 为每个敌人生成配置创建定时器
     for (size_t i = 0; i < gameData->enemySpawnConfigs.size(); i++)
-    {
-        const EnemySpawnConfig &config = gameData->enemySpawnConfigs[i];
+    {        const EnemySpawnConfig &config = gameData->enemySpawnConfigs[i];
 
         // 创建定时器
         QTimer *spawnTimer = new QTimer(this);
@@ -396,6 +407,52 @@ void GameWindow::paintEvent(QPaintEvent *event)
     painter.setPen(Qt::white);
     painter.drawText(healthBarRect.right() - 45, healthBarRect.y() + 15,
                      QString("%1").arg(currentHP));
+
+    // 绘制任务栏标题
+    if (!taskList.empty()) {
+        painter.setPen(Qt::white);
+        painter.setFont(QFont("Arial", 10, QFont::Bold));
+        painter.drawText(10, 35, QString::fromLocal8Bit("TaskBar"));
+
+        // 绘制任务栏
+        int taskBarX = 10;
+        int taskBarY = 40; // Position below health bar
+        int taskItemHeight = 20;
+        int taskItemWidth = 300;
+        int maxTasksToShow = 5; // Limit number of tasks shown
+
+        for (size_t i = 0; i < taskList.size() && i < maxTasksToShow; i++) {
+            const TaskData& task = taskList[i];
+
+            // Only show valid tasks
+            if (!task.isValid||task.isComplete) continue;
+
+            QRect taskRect(taskBarX, taskBarY + i * taskItemHeight + 20, taskItemWidth, taskItemHeight);
+
+            // Draw task background based on completion status
+            if (task.isComplete) {
+                painter.setBrush(QColor(50, 150, 50, 200)); // Green for completed tasks
+            } else {
+                painter.setBrush(QColor(70, 70, 100, 200)); // Blue for incomplete tasks
+            }
+
+            painter.setPen(Qt::black);
+            painter.drawRect(taskRect);
+
+            // Draw task text
+            QString taskText = QString::fromStdString(task.taskName + ": " + task.taskDiscrubtion);
+            painter.setPen(Qt::white);
+            painter.setFont(QFont("Arial", 8));
+
+            // Truncate text if too long
+            QFontMetrics metrics(painter.font());
+            if (metrics.horizontalAdvance(taskText) > taskItemWidth - 10) {
+                taskText = metrics.elidedText(taskText, Qt::ElideRight, taskItemWidth - 10);
+            }
+
+            painter.drawText(taskRect.x() + 5, taskRect.y() + 13, taskText);
+        }
+    }
 }
 
 void GameWindow::keyPressEvent(QKeyEvent *event)
@@ -427,6 +484,13 @@ void GameWindow::handleMovement(int step, int diagonalStep)
         }else npcImage[i].second = false;
     }
 
+    // 是否遇见boss
+    for(int i=0;i<bossList.size();i++){
+        if(!bossList[i]->isDead&&dis(player->getX(),player->getY(),bossList[i]->getX(),bossList[i]->getY())<player->getAttackRange()){
+            bossList[i]->data->canMove=true;
+            bossList[i]->startMove();
+        }
+    }
     bool up = keyPressed.contains(Qt::Key_W);
     bool down = keyPressed.contains(Qt::Key_S);
     bool left = keyPressed.contains(Qt::Key_A);
@@ -540,6 +604,12 @@ void GameWindow::generateEnemy(int enemyConfigIndex)
     }
     enemies.append(newEnemy);
 
+    // 检查是否是boss
+    if(enemyConfigIndex>=gameData->enemySpawnConfigs.size()-bossNum)
+    {       bossList.push_back(newEnemy);
+           QMessageBox::information(this, "危险提醒", "新的boss已生成");
+    }
+
     // 连接敌人的子弹创建信号
     connect(newEnemy, &Enemy::createBullet, this, [this](Bullet *bullet)
             {
@@ -596,7 +666,7 @@ void GameWindow::handleEnemyDead()
         }
     }
 
-    if (enemies.isEmpty() && allSpawned)
+    /*if (enemies.isEmpty() && allSpawned)
     {
         deadTimer->stop();
         stopGame();
@@ -604,7 +674,24 @@ void GameWindow::handleEnemyDead()
         emit gameFinished();
         return;
     }
+    */
+    // 改成触发完所有npc即可结束游戏
+    bool flag = true;
+    for(int i=0;i<isGreeting.size();i++){
+        if(isGreeting[i]==false){
+            flag = false;
+            break;
+        }
+    }
+    checkTask();
 
+    if(flag == true){
+        deadTimer->stop();
+        stopGame();
+        QMessageBox::information(this, "游戏结束","恭喜你完成了所有任务！");
+        emit gameFinished();
+        return;
+    }
     if (enemies.isEmpty())
         return;
 
@@ -689,6 +776,16 @@ void GameWindow::closeEvent(QCloseEvent *event)
 }
 
 void GameWindow::handleNPCGreeting(int id){
+    bool ifPlot = true;
+    for(int i=0;i<id;i++){
+        if(isGreeting[id]==false){
+            ifPlot=false;
+            break;
+        }
+    }
+    if(!ifPlot){
+        QMessageBox::information(this, "剧情触发失败", "请按照顺序触发剧情！");
+        return;}
     if(isGreeting[id]==true)return;
     if(keyPressed.contains(Qt::Key_Enter)){
         emit plotStart(id);
@@ -698,3 +795,227 @@ void GameWindow::handleNPCGreeting(int id){
     stopGame();
     }
 }
+QString getBuffDescription(const TaskData::Buff& buff) {
+    QStringList parts;
+    if (buff.dhp != 0) parts << QString("生命值 %+1").arg(buff.dhp);
+    if (buff.ddamage != 0) parts << QString("攻击力 %+1").arg(buff.ddamage);
+    if (buff.dattackRange != 0) parts << QString("攻击范围 %+1").arg(buff.dattackRange);
+    if (buff.dattackCD != 0) parts << QString("攻击冷却 %+1").arg(buff.dattackCD); // 注意：负数通常是增益
+    if (buff.dmoveStep != 0) parts << QString("移动速度 %+1").arg(buff.dmoveStep);
+    if (buff.bulletData != nullptr) parts << "获得新子弹效果";
+
+    return parts.join("，");
+}
+
+void GameWindow::showTaskRewardDialog(const TaskData &task)
+{
+    // 1. 暂停游戏
+    stopGame();
+
+    // 2. 创建对话框
+    QDialog dlg(this);
+    dlg.setWindowTitle("任务完成！");
+    dlg.setMinimumWidth(400);
+    // 设置窗口标志：去掉关闭按钮，强制玩家必须选择一个奖励
+    dlg.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+
+    // 3. 设置垂直布局
+    QVBoxLayout *layout = new QVBoxLayout(&dlg);
+    layout->setSpacing(15);
+    layout->setContentsMargins(20, 20, 20, 20);
+
+    // 4. 添加标题和任务描述
+    // 注意：这里使用了你结构体中的命名 taskDiscrubtion
+    QLabel *titleLabel = new QLabel(QString::fromStdString(task.taskName), &dlg);
+    titleLabel->setStyleSheet("font-size: 20px; font-weight: bold; color: #FFD700;"); // 金色标题
+    titleLabel->setAlignment(Qt::AlignCenter);
+    layout->addWidget(titleLabel);
+
+    QLabel *descLabel = new QLabel(QString::fromStdString(task.taskDiscrubtion), &dlg);
+    descLabel->setWordWrap(true);
+    descLabel->setStyleSheet("font-size: 14px; color: #333;");
+    descLabel->setAlignment(Qt::AlignCenter);
+    layout->addWidget(descLabel);
+
+    layout->addSpacing(10);
+
+    // 5. 遍历 buffs[3] 生成按钮
+    bool hasOption = false;
+    for (int i = 0; i < 3; ++i) {
+        const TaskData::Buff& currentBuff = task.buffs[i];
+        hasOption = true;
+
+        // 生成按钮文字
+        QString btnText = QString("选项 %1:\n%2").arg(i + 1).arg(getBuffDescription(currentBuff));
+
+        QPushButton *btn = new QPushButton(btnText, &dlg);
+        // 美化按钮样式
+        btn->setStyleSheet(
+            "QPushButton { "
+            "   background-color: #4CAF50; color: white; border-radius: 8px; "
+            "   padding: 10px; font-size: 14px; text-align: left; border: 1px solid #3e8e41;"
+            "}"
+            "QPushButton:hover { background-color: #45a049; }"
+            "QPushButton:pressed { background-color: #3e8e41; border: 2px solid white; }"
+            );
+
+        // 连接点击信号
+        // 注意：Lambda按值捕获 currentBuff，这样每个按钮都保存了自己那份数据
+        connect(btn, &QPushButton::clicked, this, [this, currentBuff, &dlg]() {
+            // 应用属性升级
+            this->player->upgrade(
+                currentBuff.dhp,
+                currentBuff.ddamage,
+                currentBuff.dattackRange,
+                currentBuff.dattackCD,
+                currentBuff.dmoveStep,
+                currentBuff.bulletData
+                );
+            // 关闭对话框
+            dlg.accept();
+        });
+
+        layout->addWidget(btn);
+    }
+
+    // 6. 兜底处理：如果配置全空，没有任何按钮，为了防止死锁，加一个确认键
+    if (!hasOption) {
+        QPushButton *closeBtn = new QPushButton("领取奖励 (无)", &dlg);
+        connect(closeBtn, &QPushButton::clicked, &dlg, &QDialog::accept);
+        layout->addWidget(closeBtn);
+    }
+
+    // 7. 模态运行 (阻塞直到用户点击)
+    dlg.exec();
+
+    // 8. 恢复游戏
+    startGame();
+}
+// GameWindow.cpp
+
+void GameWindow::checkTask() {
+    for (int i = 0; i < taskList.size(); i++) {
+        TaskData &task = taskList[i];
+
+        // 如果任务已经完成，直接跳过（避免重复弹窗）
+        if (task.isComplete) continue;
+
+        // 1. 检查任务开启条件 (isValid)
+        if (!task.isValid) {
+            bool reqBossMet = true;
+            bool reqNpcMet = true;
+            bool reqEnemyMet = true;
+
+            // --- 检查前置 Boss ---
+            if (task.bossID_request != -1) {
+                // 安全计算 Boss 索引
+                int bossStartIndex = gameData->enemySpawnConfigs.size() - bossNum;
+                // 假设 bossID 对应的是 enemyID，我们需要找到对应这个 enemyID 的 boss 实例
+                // 这里简化逻辑：假设 bossList 是按生成顺序存储的，且对应配置文件的后几个
+                int bossIndexInList = task.bossID_request - bossStartIndex; // 这种计算依赖于 ID 和 数组顺序完全对应，比较脆弱
+
+                // 更稳妥的方式：遍历 bossList 找对应的 enemyID
+                bool bossFoundAndDead = false;
+                for(auto* boss : bossList) {
+                    if(boss->getID() == task.bossID_request && boss->isDead) {
+                        bossFoundAndDead = true;
+                        break;
+                    }
+                }
+                if (!bossFoundAndDead) reqBossMet = false;
+            }
+
+            // --- 检查前置 NPC ---
+            if (task.npcID_request != -1) {
+                // 增加越界检查
+                if (task.npcID_request >= 0 && task.npcID_request < isGreeting.size()) {
+                    if (!isGreeting[task.npcID_request]) reqNpcMet = false;
+                } else {
+                    reqNpcMet = false; // ID 无效
+                }
+            }
+
+            // --- 检查前置杀怪数 ---
+            if (task.enemyCnt_request != -1) {
+                if (enemyDeadList.size() < task.enemyCnt_request) reqEnemyMet = false;
+            }
+
+            if (reqBossMet && reqNpcMet && reqEnemyMet) {
+                task.isValid = true;
+                // qDebug() << "Task Validated:" << QString::fromStdString(task.taskName);
+            }
+        }
+
+        // 2. 检查任务完成条件 (isComplete)
+        // 注意：这里用 else，表示 isValid 变为 true 的下一帧才会检查完成，或者如果逻辑允许当帧检查也可以去掉 else
+        else {
+            bool targetBossMet = true;
+            bool targetNpcMet = true;
+            bool targetEnemyMet = true;
+
+            // === 检查 Boss 目标 ===
+            if (task.bossID_target != -1) {
+                bool bossKilled = false;
+                // 遍历 bossList 查找指定 ID 的 Boss 是否死亡
+                for(auto* boss : bossList) {
+                    if(boss->getID() == task.bossID_target) {
+                        if(boss->isDead) {
+                            bossKilled = true;
+                        }
+                        break; // 找到对应ID的Boss及其状态
+                    }
+                }
+                // 如果没找到该 Boss 或者该 Boss 没死，则目标未达成
+                if (!bossKilled) targetBossMet = false;
+            }
+
+            // === 检查 NPC 目标 ===
+            if (task.npcID_target != -1) {
+                if (task.npcID_target >= 0 && task.npcID_target < isGreeting.size()) {
+                    if (!isGreeting[task.npcID_target]) targetNpcMet = false;
+                } else {
+                    targetNpcMet = false;
+                }
+            }
+
+            // === 检查杀怪数量目标 ===
+            // 注意：你的逻辑是检查总死亡数，而不是特定怪物的死亡数
+            // 如果任务要求杀“5只哥布林”，这里只检查了“死了5个任意怪”
+            // 暂时按你的原逻辑保留
+            if (enemyDeadList.size() < task.enemyCnt_target) {
+                targetEnemyMet = false;
+            }
+
+            // 当所有目标都满足时
+            if (targetBossMet && targetNpcMet && targetEnemyMet) {
+                task.isComplete = true;
+                showTaskRewardDialog(task);
+            }
+        }
+    }
+}
+/*
+struct TaskData{
+    std::string taskName;
+    std::string taskDiscrubtion;
+
+    struct Buff{
+        int dhp;
+        int ddamage;
+        int dattackRange;
+        int dattackCD;
+        int dmoveStep;
+        BulletData * bulletData;
+    };
+    Buff buffs[3];
+
+    bool isValid;
+    bool isComplete;
+    int bossID_request;
+    int bossID_target;
+    int enemyCnt_target;
+    int enemyCnt_request;
+    int npcID_request;
+    int npcID_target;
+};*/
+

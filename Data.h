@@ -111,6 +111,37 @@ struct PlotData{
     std::vector<std::pair<std::string,std::string>> imagePath_texts;
 };
 
+// Data.h
+
+struct TaskData{
+    std::string taskName;
+    std::string taskDiscrubtion;
+
+    struct Buff{
+        // ... (Buff的内容保持不变) ...
+        int dhp = 0;
+        int ddamage = 0;
+        int dattackRange = 0;
+        int dattackCD = 0;
+        int dmoveStep = 0;
+        BulletData * bulletData = nullptr;
+    };
+    // 三个选项，每个选项对应一套属性加成
+    Buff buffs[3];
+
+    bool isValid = true;
+    bool isComplete = false;
+
+    // 任务目标条件
+    // 【关键修改】：将默认值从 0 改为 -1，表示默认“无此要求”
+    int bossID_request = -1;
+    int bossID_target = -1;   // 原来是 0，必须改为 -1
+    int enemyCnt_request = -1;
+    int enemyCnt_target = 0;   // 数量默认为0是可以的
+    int npcID_request = -1;
+    int npcID_target = -1;    // 原来是 0，必须改为 -1
+};
+
 // 游戏数据类
 class GameData
 {
@@ -120,6 +151,8 @@ public:
     std::vector<BulletData> bulletDataList;          // 子弹数据列表
     std::vector<EnemySpawnConfig> enemySpawnConfigs; // 敌人生成配置
     std::vector<npcData> npcDatas;                  //npc数据
+    std::vector<TaskData> taskList;
+    int bossNum;
     GameData() {}
 };
 
@@ -147,7 +180,7 @@ namespace TestData
             data.imagePaths = {":/images/IceBall.png"}; // 默认
         data.damageMultiplier = 1.0;
         data.moveSpeed = 10;
-        data.dmoveDis = 80;
+        data.dmoveDis = 8;
         return data;
     }
 
@@ -232,6 +265,83 @@ namespace TestData
         config.spawnFreq = 100;
         return config;
     }
+    inline EnemyData createBossEnemyData(int enemyType = 1)
+    {
+        EnemyData data;
+        data.enemyID = enemyType; // Boss ID
+        data.hp = 2000;           // 高血量
+        data.damage = 50;         // 高伤害
+        data.width = 150;         // 体积大
+        data.height = 150;
+        // 假设Boss用不同的图，这里暂时复用，实际请换成Boss图
+        data.rightWalkPaths = {":/images/goblin1.png", ":/images/goblin2.png"};
+        data.leftWalkPaths={":/images/goblin3.png", ":/images/goblin4.png"};
+
+        data.canMove = true;
+        data.moveStep = 3;        // 移动稍快
+        data.speedF = {80, 150};
+        data.hasMeleeAttack = true;
+        data.hasRangedAttack = true; // Boss有远程
+        data.attackCD = 800;
+
+        // Boss发射强力子弹 (ID 2 FireBall)
+        BulletData* bull = new BulletData(createDefaultBulletData(2));
+        bull->damageMultiplier = 2.0;
+        bull->width = 40;
+        bull->height = 40;
+        data.bulletData = bull;
+        data.bulletWithoutObstacles = false;
+        return data;
+    }
+    // 创建Boss生成配置
+    inline EnemySpawnConfig createBossSpawnConfig(int enemyType = 1)
+    {
+        EnemySpawnConfig config;
+        config.enemyData = createBossEnemyData(enemyType);
+        config.spawnPositions = {QPoint(1000, 500)}; // Boss出现在地图中间
+        config.totalNum = 1;    // 只有1个Boss
+        config.spawnFreq = 5000; // 5秒后出现
+        return config;
+    }
+    inline std::vector<TaskData> createTestTasks()
+    {
+        std::vector<TaskData> tasks;
+
+        // 任务1：清理小怪
+        TaskData task1;
+        task1.taskName = "初级试炼";
+        task1.taskDiscrubtion = "清理5只哥布林以证明你的实力。";
+        task1.enemyCnt_request = 0;
+        task1.enemyCnt_target = 5;
+        task1.bossID_request = -1;
+
+        // 奖励选项1：加生命
+        task1.buffs[0].dhp = 500;
+        // 奖励选项2：加攻击
+        task1.buffs[1].ddamage = 10;
+        // 选项3为空
+
+        tasks.push_back(task1);
+
+        // 任务2：讨伐魔王
+        TaskData task2;
+        task2.taskName = "终极挑战";
+        task2.taskDiscrubtion = "击败出现的魔王！";
+        task2.enemyCnt_target = 0;
+        task2.bossID_request = -1; // 对应 Boss ID 1
+        task2.bossID_target = 1;
+
+        // 奖励选项1：加移速和攻速
+        task2.buffs[0].dmoveStep = 2;
+        task2.buffs[0].dattackCD = -50;
+        // 奖励选项2：获得新子弹 (FireBall)
+        task2.buffs[1].bulletData = new BulletData(createDefaultBulletData(2));
+        task2.buffs[1].ddamage = 20;
+
+        tasks.push_back(task2);
+
+        return tasks;
+    }
     // 创建默认游戏数据
     inline GameData* createDefaultGameData()
     {
@@ -255,6 +365,14 @@ namespace TestData
 
         // 添加敌人配置
         data->enemySpawnConfigs.push_back(createDefaultEnemySpawnConfig(0));
+        data->enemySpawnConfigs.push_back(createBossSpawnConfig(1));
+
+        // 3. 设置Boss数量
+        // 逻辑：enemySpawnConfigs 的最后 1 个配置是 Boss
+        data->bossNum = 1;
+
+        // 4. 添加任务列表
+        data->taskList = createTestTasks();
         data->npcDatas.push_back({
             0,
             ":/images/RoxyWhole.png",

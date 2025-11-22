@@ -79,6 +79,7 @@ public:
             attackTimer->start();
         }
     }
+    EnemyData *data;
 
 signals:
     void createBullet(Bullet *bullet); // 创建子弹信号
@@ -96,7 +97,7 @@ private:
     QTimer *moveSpeedChangeTimer;
 
     QTimer *attackTimer;
-    EnemyData *data;
+
 
     // 静态成员
     static Player *attackTarget;

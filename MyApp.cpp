@@ -30,11 +30,12 @@ MyApp::MyApp(QWidget *parent)
     });
     stack->addWidget(game);
     connect(menu,&MainMenu::startGame,this,[=](){
-        game->setGameData(JsonGameLoader::loadGame(":/allGameData/GameData.json")); //JsonGameLoader::loadGame(":/allGameData/GameData.json"
+        game->setGameData(TestData::createDefaultGameData()); //JsonGameLoader::loadGame(":/allGameData/GameData.json"
         stack->setCurrentWidget(game);
         game->setFocus();
     });
     connect(plot,&Plot::plotFinished,this,[=](){
+        plot->reset();
         stack->setCurrentWidget(game);
         game->startGame();
     });

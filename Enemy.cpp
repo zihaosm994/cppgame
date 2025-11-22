@@ -14,7 +14,6 @@ QList<QRect> * Enemy::obstacles = nullptr;
 Enemy::Enemy(QObject *parent)
     : Character(parent)
 {
-
     // 初始化定时器
     AIMoveTimer = new QTimer(this);
     moveSpeedChangeTimer = new QTimer(this);

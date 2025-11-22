@@ -50,6 +50,8 @@ private:
     std::vector<QTimer *> enemySpawnTimers;
     std::vector<int> enemySpawnCounts; // 每种敌人的生成计数
 
+    QTimer * powerEnemy;
+
     GameData *gameData;       // 游戏数据指针
     Player *player = nullptr; // 玩家指针
 
@@ -89,10 +91,17 @@ private:
     void handlePlayerDead();                         // 处理玩家死亡的函数
     void handleNPCGreeting(int id);
 
+    // boss相关
+    int bossNum;
+    std::vector<Enemy*> bossList;
+
     // 图片索引映射（从路径到索引）
     std::map<std::string, int> imagePathToIndex;
 
-
+    // 任务列表
+    std::vector<TaskData> taskList;
+    void showTaskRewardDialog(const TaskData &task);
+    void checkTask();
 signals:
     void gameFinished(); // 游戏结束信号
     void plotStart(int id);
