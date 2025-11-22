@@ -37,8 +37,8 @@ set(PROJECT_SOURCES
         MyApp.cpp
         plot.cpp
         GameWindow.cpp
-        store.cpp
-        savemanager.cpp
+
+
         JsonLoader.cpp
         Enemy.cpp
         Bullet.cpp
@@ -59,8 +59,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         Data.h
         plot.h
         GameWindow.h
-        store.h
-        savemanager.h
+
+
         JsonLoader.h
         Enemy.h
         Bullet.h

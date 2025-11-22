@@ -1,0 +1,14 @@
+{
+  "plot": [
+    [
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "This is the first dialogue text..."
+      },
+      {
+        "image_path": ":/images/plot_2BG.png",
+        "text": "This is the second dialogue text..."
+      }
+    ]
+  ]
+}

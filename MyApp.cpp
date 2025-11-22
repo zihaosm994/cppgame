@@ -2,6 +2,7 @@
 #include <QString>
 #include "GameWindow.h"
 #include "plot.h"
+#include "JsonLoader.h"
 MyApp::MyApp(QWidget *parent)
     :QMainWindow(parent),
     ui(new Ui_MyApp)
@@ -22,14 +23,14 @@ MyApp::MyApp(QWidget *parent)
     });
     connect(game,&GameWindow::plotStart,this,[=](int id){
         game->stopGame();
-        std::vector<PlotData> * plots = TestData::createDefaultPlotData();
-        plot->setPlotContent(&((*plots)[id].imagePath_texts));
+        static std::vector<PlotData> plots = *JsonPlotLoader::loadPlot(":/allGameData/PlotData.json"); //JsonPlotLoader::loadPlot(":/allGameData/PlotData.json")*TestData::createDefaultPlotData()
+        plot->setPlotContent(&((plots)[id].imagePath_texts));
         stack->setCurrentWidget(plot);
         plot->setFocus();
     });
     stack->addWidget(game);
     connect(menu,&MainMenu::startGame,this,[=](){
-        game->setGameData(TestData::createDefaultGameData());
+        game->setGameData(JsonGameLoader::loadGame(":/allGameData/GameData.json")); //JsonGameLoader::loadGame(":/allGameData/GameData.json"
         stack->setCurrentWidget(game);
         game->setFocus();
     });

@@ -31,5 +31,7 @@
         <file>images/roxy/RightWalk1.png</file>
         <file>images/roxy/RightWalk2.png</file>
         <file>images/bg.png</file>
+        <file>allGameData/GameData.json</file>
+        <file>allGameData/PlotData.json</file>
     </qresource>
 </RCC>

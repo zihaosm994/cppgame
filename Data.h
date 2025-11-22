@@ -74,15 +74,6 @@ struct EnemySpawnConfig
     int spawnFreq;                      // 生成频率（毫秒）
 };
 
-// 武器数据结构
-struct WeaponData
-{
-    int weaponId;                        // 武器ID（用于区分不同武器类型）
-    std::vector<std::string> imagePaths; // 武器图片路径列表
-    double damageMultiplier;             // 伤害倍率（实际伤害 = 基础伤害 * 倍率）
-};
-
-
 struct ObstacleData
 {
     QPoint pos;
@@ -106,12 +97,14 @@ struct npcData{
     std::string greetingImagePath;
     int width2,height2;
     QPoint pos;
+
+    // d-表示给玩家的增益
     int dhp;
     int ddamage;
     int dattackRange;
     int dattackCD;
     int dmoveStep;
-    BulletData * bulletData;
+    BulletData * bulletData; // 能够多一种子弹
 };
 
 struct PlotData{
@@ -213,15 +206,6 @@ namespace TestData
         return data;
     }
 
-    // 创建默认武器数据
-    inline WeaponData createDefaultWeaponData()
-    {
-        WeaponData data;
-        data.weaponId = 0;
-        data.imagePaths = {""};
-        data.damageMultiplier = 1.0;
-        return data;
-    }
     inline std::vector<PlotData> * createDefaultPlotData(){
         std::vector<PlotData> * plotData = new std::vector<PlotData>();
         plotData->push_back({

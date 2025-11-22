@@ -15,24 +15,26 @@ using json = nlohmann::json;
 
 class JsonGameLoader {
 public:
-    // 加载关卡数据
-    static std::shared_ptr<GameData> loadGame(const std::string& filename);
+    // Load game data from JSON file
+    static GameData* loadGame(const std::string& filename);
 
 private:
-    // 从json文件中加载关卡数据
+    // Parse individual components from JSON
     static PlayerData parsePlayerData(const json& player_json);
-    static EnemyData parseEnemyData(const json& enemy_json);
+    static std::vector<EnemySpawnConfig> parseEnemyConfig(const json& enemy_json);
     static MapData parseMapData(const json& map_json);
+    static std::vector<BulletData> parseBulletData(const json& bullet_json);
+    static BulletData parseSingleBulletData(const json& bullet_json);
+    static std::vector<npcData> parseNpcData(const json& npc_json);
 };
 
+// Add this to JsonLoader.h inside the JsonPlotLoader class
 class JsonPlotLoader {
 public:
-    // 加载对话数据
-    static std::shared_ptr<PlotData> loadPlot(const std::string& filename);
-
-private:
-
+    // Load plot data from JSON file
+    static std::vector<PlotData> * loadPlot(const std::string& filename);
 };
+
 
 
 #endif //GAME_JSONLOADER_H

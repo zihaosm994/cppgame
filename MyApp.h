@@ -37,5 +37,6 @@ public:
 private:
     Ui_MyApp *ui;
     QStackedWidget *stack;
+
 };
 
