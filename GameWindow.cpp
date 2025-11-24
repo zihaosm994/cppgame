@@ -18,6 +18,8 @@ GameWindow::GameWindow(QWidget *parent) : QWidget(parent), gameData(nullptr)
     attackCD = new QTimer(this);
     updateTimer = new QTimer(this);
     powerEnemy = new QTimer(this);
+
+    warningTimer = new QTimer(this);
     setFocusPolicy(Qt::StrongFocus);
 }
 
@@ -85,12 +87,14 @@ void GameWindow::setGameData(GameData *_data)
 
     // 初始化定时器
     disconnect(powerEnemy,nullptr,this,nullptr);
-    connect(powerEnemy,&QTimer::timeout,this,[this](){
-        for(auto config: gameData->enemySpawnConfigs){
+    connect(powerEnemy, &QTimer::timeout, this, [this]() {
+        for (auto &config : gameData->enemySpawnConfigs) {
             config.enemyData.damage *= 1.1;
             config.enemyData.hp *= 1.1;
-            QMessageBox::information(this, "危险报警！", "敌人加强了！");
         }
+        warningText = "⚠️ 警告：敌人已增强！生命值与攻击力提升！";
+        showWarning = true;
+        warningTimer->start(5000);
     });
     powerEnemy->start(60000);
     disconnect(movementTimer, nullptr, this, nullptr);
@@ -112,6 +116,11 @@ void GameWindow::setGameData(GameData *_data)
             { this->update(); });
     updateTimer->start(16);
 
+    disconnect(warningTimer,nullptr,this,nullptr);
+    warningTimer->setSingleShot(true); // 设置为单次触发（只响一次）
+    connect(warningTimer, &QTimer::timeout, this, [this](){
+        showWarning = false; // 时间到了，关闭显示
+    });
     Enemy::setAttackTarget(player);
     Enemy::mapData=&(_data->mapData);
     Enemy::obstacles=obstacles;
@@ -197,7 +206,7 @@ void GameWindow::stopGame()
         if (timer)
             timer->stop();
     }
-    // 停止PLayer
+    if (powerEnemy) powerEnemy->stop();
     // 停止所有enemy
     for(auto enemy:enemies){
         enemy->stop();
@@ -229,6 +238,7 @@ void GameWindow::startGame()
     for(auto bullet:bullets){
         bullet->startMove();
     }
+    if (powerEnemy) powerEnemy->start();
 }
 void GameWindow::clearKeyState()
 {
@@ -453,6 +463,34 @@ void GameWindow::paintEvent(QPaintEvent *event)
             painter.drawText(taskRect.x() + 5, taskRect.y() + 13, taskText);
         }
     }
+    // 绘制警告
+    if (showWarning) {
+        painter.save(); // 保存画笔状态
+
+        // 1. 设置字体
+        QFont font("Microsoft YaHei", 24, QFont::Bold);
+        painter.setFont(font);
+        QFontMetrics fm(font);
+        int textWidth = fm.horizontalAdvance(warningText);
+        int textHeight = fm.height();
+
+        // 2. 计算居中位置 (屏幕上方 100像素处)
+        int x = (width() - textWidth) / 2;
+        int y = 100;
+
+        // 3. 画一个半透明黑底背景 (让文字更清晰)
+        painter.setBrush(QColor(0, 0, 0, 150)); // 黑色，透明度150
+        painter.setPen(Qt::NoPen);
+        // 背景框稍微比文字大一点
+        painter.drawRoundedRect(x - 20, y, textWidth + 40, textHeight + 10, 10, 10);
+
+        // 4. 画文字 (红色)
+        painter.setPen(QColor(255, 50, 50)); // 亮红色
+        // 注意：drawText 的 y 坐标通常是基线，所以要往下移一点，或者用 rect 对齐
+        painter.drawText(x, y + fm.ascent() + 5, warningText);
+
+        painter.restore(); // 恢复画笔状态
+    }
 }
 
 void GameWindow::keyPressEvent(QKeyEvent *event)
@@ -476,14 +514,15 @@ double dis(int x1, int y1, int x2, int y2)
 void GameWindow::handleMovement(int step, int diagonalStep)
 {
     //检查是否与npc相遇
+    bool isPlot = false;
     for(int i=0;i<gameData->npcDatas.size();i++){
         if(dis(player->getX(),player->getY(),gameData->npcDatas[i].pos.x(),gameData->npcDatas[i].pos.y())<player->getAttackRange()/3){
             npcImage[i].second=true;
-            handleNPCGreeting(i);
+            isPlot =handleNPCGreeting(i);
             break;
         }else npcImage[i].second = false;
     }
-
+    if(isPlot)return;
     // 是否遇见boss
     for(int i=0;i<bossList.size();i++){
         if(!bossList[i]->isDead&&dis(player->getX(),player->getY(),bossList[i]->getX(),bossList[i]->getY())<player->getAttackRange()){
@@ -775,33 +814,37 @@ void GameWindow::closeEvent(QCloseEvent *event)
     this->deleteLater();
 }
 
-void GameWindow::handleNPCGreeting(int id){
+bool GameWindow::handleNPCGreeting(int id){
     bool ifPlot = true;
     for(int i=0;i<id;i++){
-        if(isGreeting[id]==false){
+        if(isGreeting[i]==false){
             ifPlot=false;
             break;
         }
     }
-    if(!ifPlot){
-        QMessageBox::information(this, "剧情触发失败", "请按照顺序触发剧情！");
-        return;}
-    if(isGreeting[id]==true)return;
+    if(isGreeting[id]==true)return false;
     if(keyPressed.contains(Qt::Key_Enter)){
+        if(!ifPlot){
+            showWarning=true;
+            warningText = "前置剧情未触发！";
+            warningTimer->start(3000);
+            return false;}
         emit plotStart(id);
     npcData &npc = gameData->npcDatas[id];
     player->upgrade(npc.dhp,npc.ddamage,npc.dattackRange,npc.dattackCD,npc.dmoveStep,npc.bulletData);
     isGreeting[id]=true;
     stopGame();
+    return true;
     }
+    return false;
 }
 QString getBuffDescription(const TaskData::Buff& buff) {
     QStringList parts;
-    if (buff.dhp != 0) parts << QString("生命值 %+1").arg(buff.dhp);
-    if (buff.ddamage != 0) parts << QString("攻击力 %+1").arg(buff.ddamage);
-    if (buff.dattackRange != 0) parts << QString("攻击范围 %+1").arg(buff.dattackRange);
-    if (buff.dattackCD != 0) parts << QString("攻击冷却 %+1").arg(buff.dattackCD); // 注意：负数通常是增益
-    if (buff.dmoveStep != 0) parts << QString("移动速度 %+1").arg(buff.dmoveStep);
+    if (buff.dhp != 0) parts << QString("生命值 +%1").arg(buff.dhp);
+    if (buff.ddamage != 0) parts << QString("攻击力 +%1").arg(buff.ddamage);
+    if (buff.dattackRange != 0) parts << QString("攻击范围 +%1").arg(buff.dattackRange);
+    if (buff.dattackCD != 0) parts << QString("攻击冷却 +%1").arg(buff.dattackCD); // 注意：负数通常是增益
+    if (buff.dmoveStep != 0) parts << QString("移动速度 +%1").arg(buff.dmoveStep);
     if (buff.bulletData != nullptr) parts << "获得新子弹效果";
 
     return parts.join("，");
@@ -820,7 +863,7 @@ void GameWindow::showTaskRewardDialog(const TaskData &task)
     dlg.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
 
     // 3. 设置垂直布局
-    QVBoxLayout *layout = new QVBoxLayout(&dlg);
+    QHBoxLayout *layout = new QHBoxLayout(&dlg);
     layout->setSpacing(15);
     layout->setContentsMargins(20, 20, 20, 20);
 
@@ -994,28 +1037,8 @@ void GameWindow::checkTask() {
         }
     }
 }
-/*
-struct TaskData{
-    std::string taskName;
-    std::string taskDiscrubtion;
-
-    struct Buff{
-        int dhp;
-        int ddamage;
-        int dattackRange;
-        int dattackCD;
-        int dmoveStep;
-        BulletData * bulletData;
-    };
-    Buff buffs[3];
-
-    bool isValid;
-    bool isComplete;
-    int bossID_request;
-    int bossID_target;
-    int enemyCnt_target;
-    int enemyCnt_request;
-    int npcID_request;
-    int npcID_target;
-};*/
+void GameWindow::focusOutEvent(QFocusEvent *event){
+    keyPressed.clear();
+    QWidget::focusOutEvent(event);
+}
 

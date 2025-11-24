@@ -5,8 +5,6 @@
 
 Plot::Plot(QWidget *parent) : QWidget(parent)
 {
-    // 设置固定大小
-    setFixedSize(800, 600);
 
     // 初始化文本浏览器
     textBrowser = new QTextBrowser(this);
@@ -115,11 +113,14 @@ void Plot::keyReleaseEvent(QKeyEvent *event)
 void Plot::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    // 只有图片加载成功才绘制
+
     if (!backgroundImage.isNull()) {
-        painter.drawPixmap(0, 0, backgroundImage);
+        QPixmap scaled = backgroundImage.scaled(this->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+
+        int x = (width() - scaled.width()) / 2;
+        int y = (height() - scaled.height()) / 2;
+        painter.drawPixmap(x, y, scaled);
     } else {
-        // 如果没有图片，可以填充黑色背景
         painter.fillRect(rect(), Qt::black);
     }
 }
@@ -137,14 +138,7 @@ void Plot::showNextText()
         std::string txtContent = currentData.second;
 
         // 2. 加载并处理图片
-        bool loadSuccess = backgroundImage.load(QString::fromStdString(imgPath));
-        if (loadSuccess) {
-            // 缩放到窗口大小 (1200x800)，保持比例还是拉伸看你需求
-            // 这里使用 IgnoreAspectRatio 拉伸铺满，或者 KeepAspectRatioByExpanding 裁剪铺满
-            backgroundImage = backgroundImage.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-        } else {
-            qDebug() << "Failed to load image:" << QString::fromStdString(imgPath);
-        }
+        backgroundImage.load(QString::fromStdString(imgPath));
 
         // 触发重绘，更新背景
         update();
@@ -171,4 +165,12 @@ void Plot::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
     setFocus();
+}
+
+void Plot::resizeEvent(QResizeEvent * event){
+    QWidget::resizeEvent(event);
+
+    if (textBrowser) {
+        textBrowser->setGeometry(0, height() * 4 / 5, width(), height() / 5);
+    }
 }

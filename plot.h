@@ -52,6 +52,7 @@ private:
     QTimer *typeTimer;
     int currentCharIndex = 0; // 当前显示的字符索引
     QString currentText;      // 当前显示的文本
+    void resizeEvent(QResizeEvent * event)override;
 };
 
 #endif // PLOT_H

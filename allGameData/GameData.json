@@ -18,7 +18,7 @@
         "height": 20,
         "moveSpeed": 10,
         "damageMultiplier": 1.0,
-        "dmoveDis": 80,
+        "dmoveDis": 8,
         "imagePaths": [
           ":/images/IceBall.png"
         ]
@@ -29,7 +29,7 @@
         "height": 20,
         "moveSpeed": 10,
         "damageMultiplier": 1.0,
-        "dmoveDis": 80,
+        "dmoveDis": 8,
         "imagePaths": [
           ":/images/RockBall.png"
         ]
@@ -40,7 +40,7 @@
         "height": 20,
         "moveSpeed": 10,
         "damageMultiplier": 1.0,
-        "dmoveDis": 80,
+        "dmoveDis": 8,
         "imagePaths": [
           ":/images/FireBall.png"
         ]
@@ -120,17 +120,44 @@
   ],
   "map": {
     "mapWidth": 2048,
-    "mapHeight": 1042,
-    "backgroundImgPath": ":/images/bg.png",
+    "mapHeight": 2048,
+    "backgroundImgPath": ":/images/background1.png",
     "obstacles": [
       {
         "pos": [
-          200,
-          200
+          500,
+          400
         ],
-        "width": 100,
-        "height": 100,
-        "imagePath": ":/images/Obstacle.png"
+        "width": 107,
+        "height": 211,
+        "imagePath": ":/resources/images/ob_tree.png"
+      },
+      {
+        "pos": [
+          900,
+          700
+        ],
+        "width": 107,
+        "height": 211,
+        "imagePath": ":/resources/images/ob_tree.png"
+      },
+      {
+        "pos": [
+          1400,
+          1200
+        ],
+        "width": 107,
+        "height": 211,
+        "imagePath": ":/resources/images/ob_tree.png"
+      },
+      {
+        "pos": [
+          300,
+          100
+        ],
+        "width": 107,
+        "height": 211,
+        "imagePath": ":/resources/images/ob_tree.png"
       }
     ]
   },
@@ -178,10 +205,10 @@
   "npcs": [
     {
       "npcId": 0,
-      "imagePath": ":/images/RoxyWhole.png",
+      "imagePath": "://images/blackcat.png",
       "width1": 50,
       "height1": 50,
-      "greetingImagePath": ":/images/MagicCircle.png",
+      "greetingImagePath": "://images/blackcat.png",
       "width2": 40,
       "height2": 40,
       "pos": [
@@ -196,10 +223,10 @@
     },
     {
       "npcId": 1,
-      "imagePath": ":/images/RoxyWhole.png",
+      "imagePath": "://images/applecat.png",
       "width1": 50,
       "height1": 50,
-      "greetingImagePath": ":/images/MagicCircle.png",
+      "greetingImagePath": "://images/applecat.png",
       "width2": 40,
       "height2": 40,
       "pos": [
@@ -214,10 +241,10 @@
     },
     {
       "npcId": 2,
-      "imagePath": ":/images/RoxyWhole.png",
+      "imagePath": "://images/quickman.png",
       "width1": 50,
       "height1": 50,
-      "greetingImagePath": ":/images/MagicCircle.png",
+      "greetingImagePath": "://images/quickman.png",
       "width2": 40,
       "height2": 40,
       "pos": [
@@ -232,10 +259,10 @@
     },
     {
       "npcId": 3,
-      "imagePath": ":/images/RoxyWhole.png",
-      "width1": 50,
-      "height1": 50,
-      "greetingImagePath": ":/images/MagicCircle.png",
+      "imagePath": "://images/happycat.png",
+      "width1": 100,
+      "height1": 100,
+      "greetingImagePath": "://images/happycat.png",
       "width2": 40,
       "height2": 40,
       "pos": [
@@ -250,10 +277,10 @@
     },
     {
       "npcId": 4,
-      "imagePath": ":/images/RoxyWhole.png",
+      "imagePath": "://images/cat.png",
       "width1": 50,
       "height1": 50,
-      "greetingImagePath": ":/images/MagicCircle.png",
+      "greetingImagePath": "://images/cat.png",
       "width2": 40,
       "height2": 40,
       "pos": [
@@ -268,10 +295,10 @@
     },
     {
       "npcId": 5,
-      "imagePath": ":/images/RoxyWhole.png",
+      "imagePath": "://images/king.png",
       "width1": 50,
       "height1": 50,
-      "greetingImagePath": ":/images/MagicCircle.png",
+      "greetingImagePath": "://images/king.png",
       "width2": 40,
       "height2": 40,
       "pos": [

@@ -22,6 +22,10 @@ private:
     void resizeEvent(QResizeEvent * event)override;
     std::vector<PlotData> *plots;
     void showPlot(int id);
+
+    void paintEvent(QPaintEvent *event) override;
+
+    QPixmap backgroundPixmap;
 signals:
     void startGame();
 };

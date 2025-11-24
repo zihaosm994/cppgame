@@ -89,7 +89,7 @@ private:
     void handlePlayerAttack();                       // 处理攻击的函数
     void handleEnemyDead();                          // 处理敌人死亡的函数
     void handlePlayerDead();                         // 处理玩家死亡的函数
-    void handleNPCGreeting(int id);
+    bool handleNPCGreeting(int id);
 
     // boss相关
     int bossNum;
@@ -102,6 +102,11 @@ private:
     std::vector<TaskData> taskList;
     void showTaskRewardDialog(const TaskData &task);
     void checkTask();
+    void focusOutEvent(QFocusEvent *event) override;
+
+    bool showWarning = false;       // 是否正在显示警告
+    QString warningText;            // 警告的内容
+    QTimer *warningTimer;           // 控制警告显示时长的定时器
 signals:
     void gameFinished(); // 游戏结束信号
     void plotStart(int id);

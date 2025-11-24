@@ -33,5 +33,15 @@
         <file>images/bg.png</file>
         <file>allGameData/GameData.json</file>
         <file>allGameData/PlotData.json</file>
+        <file>images/background1.png</file>
+        <file>resources/images/ob_tree.png</file>
+        <file>resources/images/ob_house2.png</file>
+        <file>resources/images/ob2_house1.png</file>
+        <file>images/blackcat.png</file>
+        <file>images/applecat.png</file>
+        <file>images/quickman.png</file>
+        <file>images/happycat.png</file>
+        <file>images/king.png</file>
+        <file>images/cat.png</file>
     </qresource>
 </RCC>

@@ -30,7 +30,7 @@ MyApp::MyApp(QWidget *parent)
     });
     stack->addWidget(game);
     connect(menu,&MainMenu::startGame,this,[=](){
-        game->setGameData(TestData::createDefaultGameData()); //JsonGameLoader::loadGame(":/allGameData/GameData.json"
+        game->setGameData(TestData::createDefaultGameData()); //JsonGameLoader::loadGame(":/allGameData/GameData.json")
         stack->setCurrentWidget(game);
         game->setFocus();
     });
@@ -56,17 +56,10 @@ MainMenu::MainMenu(QWidget * parent):
 }
 void MainMenu::setBackground(QString path)
 {
-    // 加载背景图片
-    QPixmap bg((QString(path)));
-    // 按比例缩放至填满窗口（可能裁剪边缘）
-    QPixmap scaledBg = bg.scaled(this->size(), Qt::KeepAspectRatioByExpanding);
-    // 创建调色板并设置背景
-    QPalette palette;
-    palette.setBrush(QPalette::Window, scaledBg);
-    this->setPalette(palette);
-    // 启用自动填充背景
-    this->setAutoFillBackground(true);
-    this->setFocusPolicy(Qt::StrongFocus);
+    // 加载图片到成员变量
+    backgroundPixmap.load(path);
+    // 触发一次重绘
+    update();
 }
 MainMenu::~MainMenu(){
     for(auto button:buttonList){
@@ -139,6 +132,21 @@ void MainMenu:: resizeEvent(QResizeEvent * event){
         button->setGeometry(xPos, yPos, btnWidth, btnHeight);             // 设置按钮位置和大小
         i++;
     }
+}
+
+void MainMenu::paintEvent(QPaintEvent *event)
+{
+    QPainter painter(this);
+
+    if (backgroundPixmap.isNull()) {
+        painter.fillRect(rect(), Qt::black);
+        return;
+    }
+    QPixmap scaled = backgroundPixmap.scaled(this->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+    int x = (width() - scaled.width()) / 2;
+    int y = (height() - scaled.height()) / 2;
+
+    painter.drawPixmap(x, y, scaled);
 }
 
 
