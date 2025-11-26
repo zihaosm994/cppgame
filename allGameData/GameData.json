@@ -10,7 +10,7 @@
     ],
     "damage": 20,
     "attackCD": 200,
-    "attackRange": 600,
+    "attackRange": 400,
     "bulletData": [
       {
         "bulletID": 0,
@@ -20,22 +20,11 @@
         "damageMultiplier": 1.0,
         "dmoveDis": 8,
         "imagePaths": [
-          ":/images/IceBall.png"
+          ":/images/FireBall.png"
         ]
       },
       {
-        "bulletID": 1,
-        "width": 20,
-        "height": 20,
-        "moveSpeed": 10,
-        "damageMultiplier": 1.0,
-        "dmoveDis": 8,
-        "imagePaths": [
-          ":/images/RockBall.png"
-        ]
-      },
-      {
-        "bulletID": 2,
+        "bulletID": 0,
         "width": 20,
         "height": 20,
         "moveSpeed": 10,
@@ -47,27 +36,83 @@
       }
     ],
     "rightWalkPaths": [
-      ":/images/roxy/RightWalk1.png",
-      ":/images/roxy/RightWalk2.png"
+      ":/images/role/r1.png",
+      ":/images/role/r1.png",
+      ":/images/role/r1.png",
+      ":/images/role/r1.png",
+      ":/images/role/r2.png",
+      ":/images/role/r2.png",
+      ":/images/role/r2.png",
+      ":/images/role/r2.png",
+      ":/images/role/r3.png",
+      ":/images/role/r3.png",
+      ":/images/role/r3.png",
+      ":/images/role/r3.png",
+      ":/images/role/r4.png",
+      ":/images/role/r4.png",
+      ":/images/role/r4.png",
+      ":/images/role/r4.png"
     ],
     "leftWalkPaths": [
-      ":/images/roxy/LeftWalk1.png",
-      ":/images/roxy/LeftWalk2.png"
+      ":/images/role/l1.png",
+      ":/images/role/l1.png",
+      ":/images/role/l1.png",
+      ":/images/role/l1.png",
+      ":/images/role/l2.png",
+      ":/images/role/l2.png",
+      ":/images/role/l2.png",
+      ":/images/role/l2.png",
+      ":/images/role/l3.png",
+      ":/images/role/l3.png",
+      ":/images/role/l3.png",
+      ":/images/role/l3.png",
+      ":/images/role/l4.png",
+      ":/images/role/l4.png",
+      ":/images/role/l4.png",
+      ":/images/role/l4.png"
     ],
     "upWalkPaths": [
-      ":/images/roxy/backWalk1.png",
-      ":/images/roxy/backWalk2.png"
+      ":/images/role/u1.png",
+      ":/images/role/u1.png",
+      ":/images/role/u1.png",
+      ":/images/role/u1.png",
+      ":/images/role/u2.png",
+      ":/images/role/u2.png",
+      ":/images/role/u2.png",
+      ":/images/role/u2.png",
+      ":/images/role/u3.png",
+      ":/images/role/u3.png",
+      ":/images/role/u3.png",
+      ":/images/role/u3.png",
+      ":/images/role/u4.png",
+      ":/images/role/u4.png",
+      ":/images/role/u4.png",
+      ":/images/role/u4.png"
     ],
     "downWalkPaths": [
-      ":/images/roxy/RightWalk1.png",
-      ":/images/roxy/RightWalk2.png"
+      ":/images/role/r1.png",
+      ":/images/role/r1.png",
+      ":/images/role/r1.png",
+      ":/images/role/r1.png",
+      ":/images/role/r2.png",
+      ":/images/role/r2.png",
+      ":/images/role/r2.png",
+      ":/images/role/r2.png",
+      ":/images/role/r3.png",
+      ":/images/role/r3.png",
+      ":/images/role/r3.png",
+      ":/images/role/r3.png",
+      ":/images/role/r4.png",
+      ":/images/role/r4.png",
+      ":/images/role/r4.png",
+      ":/images/role/r4.png"
     ]
   },
   "enemies": [
     {
       "enemyID": 0,
       "hp": 100,
-      "damage": 10,
+      "damage": 300,
       "width": 80,
       "height": 80,
       "canMove": true,
@@ -80,7 +125,7 @@
       "hasMeleeAttack": true,
       "hasRangedAttack": false,
       "bulletWithoutObstacles": true,
-      "attackCd": 1000,
+      "attackCD": 1000,
       "bulletData": {
         "bulletID": 0,
         "width": 20,
@@ -93,71 +138,695 @@
         ]
       },
       "rightWalkPaths": [
-        ":/images/goblin1.png",
-        ":/images/goblin2.png"
+        ":/images/vjf_u.png",
+        ":/images/vjf_u.png",
+        ":/images/vjf_u.png",
+        ":/images/vjf_u.png",
+        ":/images/vjf_u.png",
+        ":/images/vjf_d.png",
+        ":/images/vjf_d.png",
+        ":/images/vjf_d.png",
+        ":/images/vjf_d.png",
+        ":/images/vjf_d.png"
       ],
       "leftWalkPaths": [
-        ":/images/goblin3.png",
-        ":/images/goblin4.png"
+        ":/images/vjf_u.png",
+        ":/images/vjf_u.png",
+        ":/images/vjf_u.png",
+        ":/images/vjf_u.png",
+        ":/images/vjf_u.png",
+        ":/images/vjf_d.png",
+        ":/images/vjf_d.png",
+        ":/images/vjf_d.png",
+        ":/images/vjf_d.png",
+        ":/images/vjf_d.png"
       ],
       "spawnFreq": 1000,
       "totalNum": 20,
       "spawnPositions": [
         [
-          800,
+          247,
+          424
+        ],
+        [
+          677,
+          231
+        ],
+        [
+          10,
+          428
+        ],
+        [
+          38,
+          724
+        ],
+        [
+          542,
+          295
+        ],
+        [
+          573,
+          5
+        ]
+      ]
+    },
+    {
+      "enemyID": 1,
+      "hp": 100,
+      "damage": 300,
+      "width": 80,
+      "height": 80,
+      "canMove": true,
+      "moveStep": 2,
+      "speedF": [
+        100,
+        200
+      ],
+      "pathUpdateFreq": 500,
+      "hasMeleeAttack": true,
+      "hasRangedAttack": false,
+      "bulletWithoutObstacles": true,
+      "attackCD": 1000,
+      "bulletData": {
+        "bulletID": 0,
+        "width": 20,
+        "height": 20,
+        "moveSpeed": 10,
+        "damageMultiplier": 1.0,
+        "dmoveDis": 80,
+        "imagePaths": [
+          ":/images/FireBall.png"
+        ]
+      },
+      "rightWalkPaths": [
+        ":/images/gll_u.png",
+        ":/images/gll_u.png",
+        ":/images/gll_u.png",
+        ":/images/gll_u.png",
+        ":/images/gll_u.png",
+        ":/images/gll_d.png",
+        ":/images/gll_d.png",
+        ":/images/gll_d.png",
+        ":/images/gll_d.png",
+        ":/images/gll_d.png"
+      ],
+      "leftWalkPaths": [
+        ":/images/gll_u.png",
+        ":/images/gll_u.png",
+        ":/images/gll_u.png",
+        ":/images/gll_u.png",
+        ":/images/gll_u.png",
+        ":/images/gll_d.png",
+        ":/images/gll_d.png",
+        ":/images/gll_d.png",
+        ":/images/gll_d.png",
+        ":/images/gll_d.png"
+      ],
+      "spawnFreq": 1000,
+      "totalNum": 50,
+      "spawnPositions": [
+        [
+          57,
+          651
+        ],
+        [
+          412,
+          38
+        ],
+        [
+          237,
+          793
+        ],
+        [
+          782,
+          621
+        ],
+        [
+          354,
+          11
+        ],
+        [
+          247,
+          407
+        ]
+      ]
+    },
+    {
+      "enemyID": 2,
+      "hp": 100,
+      "damage": 300,
+      "width": 80,
+      "height": 80,
+      "canMove": true,
+      "moveStep": 2,
+      "speedF": [
+        100,
+        200
+      ],
+      "pathUpdateFreq": 500,
+      "hasMeleeAttack": true,
+      "hasRangedAttack": false,
+      "bulletWithoutObstacles": true,
+      "attackCD": 1000,
+      "bulletData": {
+        "bulletID": 0,
+        "width": 20,
+        "height": 20,
+        "moveSpeed": 10,
+        "damageMultiplier": 1.0,
+        "dmoveDis": 80,
+        "imagePaths": []
+      },
+      "rightWalkPaths": [
+        ":/images/tyh_u.png",
+        ":/images/tyh_u.png",
+        ":/images/tyh_u.png",
+        ":/images/tyh_u.png",
+        ":/images/tyh_u.png",
+        ":/images/tyh_d.png",
+        ":/images/tyh_d.png",
+        ":/images/tyh_d.png",
+        ":/images/tyh_d.png",
+        ":/images/tyh_d.png"
+      ],
+      "leftWalkPaths": [
+        ":/images/tyh_u.png",
+        ":/images/tyh_u.png",
+        ":/images/tyh_u.png",
+        ":/images/tyh_u.png",
+        ":/images/tyh_u.png",
+        ":/images/tyh_d.png",
+        ":/images/tyh_d.png",
+        ":/images/tyh_d.png",
+        ":/images/tyh_d.png",
+        ":/images/tyh_d.png"
+      ],
+      "spawnFreq": 1000,
+      "totalNum": 50,
+      "spawnPositions": [
+        [
+          496,
+          746
+        ],
+        [
+          601,
+          388
+        ],
+        [
+          910,
+          240
+        ],
+        [
+          299,
+          15
+        ],
+        [
+          34,
+          658
+        ],
+        [
+          779,
+          901
+        ]
+      ]
+    },
+    {
+      "enemyID": 3,
+      "hp": 100,
+      "damage": 300,
+      "width": 80,
+      "height": 80,
+      "canMove": true,
+      "moveStep": 2,
+      "speedF": [
+        100,
+        200
+      ],
+      "pathUpdateFreq": 500,
+      "hasMeleeAttack": true,
+      "hasRangedAttack": false,
+      "bulletWithoutObstacles": true,
+      "attackCD": 1000,
+      "bulletData": {
+        "bulletID": 0,
+        "width": 20,
+        "height": 20,
+        "moveSpeed": 10,
+        "damageMultiplier": 1.0,
+        "dmoveDis": 80,
+        "imagePaths": []
+      },
+      "rightWalkPaths": [
+        ":/images/bug_u.png",
+        ":/images/bug_u.png",
+        ":/images/bug_u.png",
+        ":/images/bug_u.png",
+        ":/images/bug_u.png",
+        ":/images/bug_d.png",
+        ":/images/bug_d.png",
+        ":/images/bug_d.png",
+        ":/images/bug_d.png",
+        ":/images/bug_d.png"
+      ],
+      "leftWalkPaths": [
+        ":/images/bug_u.png",
+        ":/images/bug_u.png",
+        ":/images/bug_u.png",
+        ":/images/bug_u.png",
+        ":/images/bug_u.png",
+        ":/images/bug_d.png",
+        ":/images/bug_d.png",
+        ":/images/bug_d.png",
+        ":/images/bug_d.png",
+        ":/images/bug_d.png"
+      ],
+      "spawnFreq": 500,
+      "totalNum": 100,
+      "spawnPositions": [
+        [
+          500,
+          504
+        ],
+        [
+          600,
+          717
+        ],
+        [
+          550,
+          472
+        ],
+        [
+          660,
+          70
+        ],
+        [
+          160,
+          662
+        ],
+        [
+          450,
+          36
+        ]
+      ]
+    },
+    {
+      "enemyID": 4,
+      "hp": 100,
+      "damage": 300,
+      "width": 80,
+      "height": 80,
+      "canMove": true,
+      "moveStep": 2,
+      "speedF": [
+        100,
+        200
+      ],
+      "pathUpdateFreq": 500,
+      "hasMeleeAttack": true,
+      "hasRangedAttack": false,
+      "bulletWithoutObstacles": true,
+      "attackCD": 1000,
+      "bulletData": {
+        "bulletID": 0,
+        "width": 20,
+        "height": 20,
+        "moveSpeed": 10,
+        "damageMultiplier": 1.0,
+        "dmoveDis": 80,
+        "imagePaths": [
+          ":/images/FireBall.png"
+        ]
+      },
+      "rightWalkPaths": [
+        ":/images/53_1.png"
+      ],
+      "leftWalkPaths": [
+        ":/images/53_1.png"
+      ],
+      "spawnFreq": 1000,
+      "totalNum": 90,
+      "spawnPositions": [
+        [
+          1323,
+          31
+        ],
+        [
+          1412,
+          200
+        ],
+        [
+          1721,
+          174
+        ],
+        [
+          1605,
+          265
+        ],
+        [
+          1884,
+          865
+        ],
+        [
+          1195,
+          148
+        ]
+      ]
+    },
+    {
+      "enemyID": 5,
+      "hp": 100,
+      "damage": 300,
+      "width": 80,
+      "height": 80,
+      "canMove": true,
+      "moveStep": 2,
+      "speedF": [
+        100,
+        200
+      ],
+      "pathUpdateFreq": 500,
+      "hasMeleeAttack": true,
+      "hasRangedAttack": false,
+      "bulletWithoutObstacles": true,
+      "attackCD": 1000,
+      "bulletData": {
+        "bulletID": 0,
+        "width": 20,
+        "height": 20,
+        "moveSpeed": 10,
+        "damageMultiplier": 1.0,
+        "dmoveDis": 80,
+        "imagePaths": []
+      },
+      "rightWalkPaths": [
+        ":/images/53_2.png"
+      ],
+      "leftWalkPaths": [
+        ":/images/53_2.png"
+      ],
+      "spawnFreq": 1000,
+      "totalNum": 80,
+      "spawnPositions": [
+        [
+          1700,
           800
         ],
         [
-          1200,
+          1800,
           800
         ],
         [
-          800,
-          600
+          1850,
+          960
+        ],
+        [
+          1820,
+          955
+        ],
+        [
+          1860,
+          950
+        ],
+        [
+          1800,
+          950
+        ]
+      ]
+    },
+    {
+      "enemyID": 6,
+      "hp": 100,
+      "damage": 300,
+      "width": 80,
+      "height": 80,
+      "canMove": true,
+      "moveStep": 2,
+      "speedF": [
+        100,
+        200
+      ],
+      "pathUpdateFreq": 500,
+      "hasMeleeAttack": true,
+      "hasRangedAttack": false,
+      "bulletWithoutObstacles": true,
+      "attackCD": 1000,
+      "bulletData": {
+        "bulletID": 0,
+        "width": 20,
+        "height": 20,
+        "moveSpeed": 10,
+        "damageMultiplier": 1.0,
+        "dmoveDis": 80,
+        "imagePaths": [
+          ":/images/FireBall.png"
+        ]
+      },
+      "rightWalkPaths": [
+        ":/images/xtkz.png"
+      ],
+      "leftWalkPaths": [
+        ":/images/xtkz.png"
+      ],
+      "spawnFreq": 1000,
+      "totalNum": 70,
+      "spawnPositions": [
+        [
+          1567,
+          432
+        ],
+        [
+          1598,
+          612
+        ],
+        [
+          1899,
+          748
+        ],
+        [
+          1272,
+          760
+        ],
+        [
+          1483,
+          724
+        ],
+        [
+          1307,
+          209
+        ]
+      ]
+    },
+    {
+      "enemyID": 7,
+      "hp": 100,
+      "damage": 300,
+      "width": 80,
+      "height": 80,
+      "canMove": true,
+      "moveStep": 2,
+      "speedF": [
+        100,
+        200
+      ],
+      "pathUpdateFreq": 500,
+      "hasMeleeAttack": true,
+      "hasRangedAttack": false,
+      "bulletWithoutObstacles": true,
+      "attackCD": 1000,
+      "bulletData": {
+        "bulletID": 0,
+        "width": 20,
+        "height": 20,
+        "moveSpeed": 10,
+        "damageMultiplier": 1.0,
+        "dmoveDis": 8,
+        "imagePaths": [
+          ":/images/FireBall.png"
+        ]
+      },
+      "rightWalkPaths": [
+        ":/images/bst.png"
+      ],
+      "leftWalkPaths": [
+        ":/images/bst.png"
+      ],
+      "spawnFreq": 1000,
+      "totalNum": 60,
+      "spawnPositions": [
+        [
+          1349,
+          400
+        ],
+        [
+          1879,
+          764
+        ],
+        [
+          1110,
+          589
+        ],
+        [
+          1742,
+          438
+        ],
+        [
+          1921,
+          126
+        ],
+        [
+          1211,
+          387
+        ]
+      ]
+    },
+    {
+      "enemyID": 8,
+      "hp": 100000,
+      "damage": 900,
+      "width": 400,
+      "height": 600,
+      "canMove": true,
+      "moveStep": 3,
+      "speedF": [
+        100,
+        200
+      ],
+      "pathUpdateFreq": 500,
+      "hasMeleeAttack": true,
+      "hasRangedAttack": true,
+      "bulletWithoutObstacles": true,
+      "attackCD": 1000,
+      "bulletData": {
+        "bulletID": 3,
+        "width": 20,
+        "height": 20,
+        "moveSpeed": 10,
+        "damageMultiplier": 1.0,
+        "dmoveDis": 8,
+        "imagePaths": [
+          ":/images/FireBall.png"
+        ]
+      },
+      "rightWalkPaths": [
+        ":/images/boss_r1.png",
+        ":/images/boss_r1.png",
+        ":/images/boss_r1.png",
+        ":/images/boss_r1.png",
+        ":/images/boss_r1.png",
+        ":/images/boss_r1.png",
+        ":/images/boss_r1.png",
+        ":/images/boss_r1.png",
+        ":/images/boss_r1.png",
+        ":/images/boss_r1.png",
+        ":/images/boss_r1.png",
+        ":/images/boss_r1.png",
+        ":/images/boss_r2.png",
+        ":/images/boss_r2.png",
+        ":/images/boss_r2.png",
+        ":/images/boss_r2.png",
+        ":/images/boss_r2.png",
+        ":/images/boss_r2.png",
+        ":/images/boss_r2.png",
+        ":/images/boss_r2.png",
+        ":/images/boss_r2.png",
+        ":/images/boss_r2.png",
+        ":/images/boss_r2.png",
+        ":/images/boss_r2.png"
+      ],
+      "leftWalkPaths": [
+        ":/images/boss_l1.png",
+        ":/images/boss_l1.png",
+        ":/images/boss_l1.png",
+        ":/images/boss_l1.png",
+        ":/images/boss_l1.png",
+        ":/images/boss_l1.png",
+        ":/images/boss_l1.png",
+        ":/images/boss_l1.png",
+        ":/images/boss_l1.png",
+        ":/images/boss_l1.png",
+        ":/images/boss_l1.png",
+        ":/images/boss_l1.png",
+        ":/images/boss_l2.png",
+        ":/images/boss_l2.png",
+        ":/images/boss_l2.png",
+        ":/images/boss_l2.png",
+        ":/images/boss_l2.png",
+        ":/images/boss_l2.png",
+        ":/images/boss_l2.png",
+        ":/images/boss_l2.png",
+        ":/images/boss_l2.png",
+        ":/images/boss_l2.png",
+        ":/images/boss_l2.png",
+        ":/images/boss_l2.png"
+      ],
+      "spawnFreq": 30000,
+      "totalNum": 1,
+      "spawnPositions": [
+        [
+          2500,
+          50
         ]
       ]
     }
   ],
   "map": {
-    "mapWidth": 2048,
-    "mapHeight": 2048,
+    "mapWidth": 3072,
+    "mapHeight": 1024,
     "backgroundImgPath": ":/images/background1.png",
     "obstacles": [
       {
         "pos": [
-          500,
+          1024,
+          0
+        ],
+        "width": 40,
+        "height": 400,
+        "imagePath": ":/images/long_pencil.png"
+      },
+      {
+        "pos": [
+          1024,
           400
         ],
-        "width": 107,
-        "height": 211,
-        "imagePath": ":/resources/images/ob_tree.png"
+        "width": 40,
+        "height": 400,
+        "imagePath": ":/images/long_pencil.png"
       },
       {
         "pos": [
-          900,
-          700
+          1024,
+          800
         ],
-        "width": 107,
-        "height": 211,
-        "imagePath": ":/resources/images/ob_tree.png"
+        "width": 40,
+        "height": 400,
+        "imagePath": ":/images/long_pencil.png"
       },
       {
         "pos": [
-          1400,
-          1200
+          2048,
+          0
         ],
-        "width": 107,
-        "height": 211,
-        "imagePath": ":/resources/images/ob_tree.png"
+        "width": 40,
+        "height": 400,
+        "imagePath": ":/images/long_pencil.png"
       },
       {
         "pos": [
-          300,
-          100
+          2048,
+          400
         ],
-        "width": 107,
-        "height": 211,
-        "imagePath": ":/resources/images/ob_tree.png"
+        "width": 40,
+        "height": 400,
+        "imagePath": ":/images/long_pencil.png"
+      },
+      {
+        "pos": [
+          2048,
+          800
+        ],
+        "width": 40,
+        "height": 400,
+        "imagePath": ":/images/long_pencil.png"
       }
     ]
   },
@@ -168,11 +837,16 @@
       "height": 20,
       "moveSpeed": 10,
       "damageMultiplier": 1.0,
-      "frameCnt": 8,
-      "targetHeight": 90,
-      "targetWidth": 60,
+      "dmoveDis": 8,
       "imagePaths": [
-        ":/images/IceBall.png"
+        ":/images/FireBall.png",
+        ":/images/FireBall.png",
+        ":/images/FireBall_1.png",
+        ":/images/FireBall_1.png",
+        ":/images/FireBall_2.png",
+        ":/images/FireBall_2.png",
+        ":/images/FireBall_3.png",
+        ":/images/FireBall_3.png"
       ]
     },
     {
@@ -181,9 +855,7 @@
       "height": 20,
       "moveSpeed": 10,
       "damageMultiplier": 1.0,
-      "frameCnt": 8,
-      "targetHeight": 90,
-      "targetWidth": 60,
+      "dmoveDis": 8,
       "imagePaths": [
         ":/images/RockBall.png"
       ]
@@ -194,26 +866,35 @@
       "height": 20,
       "moveSpeed": 10,
       "damageMultiplier": 1.0,
-      "frameCnt": 8,
-      "targetHeight": 90,
-      "targetWidth": 60,
+      "dmoveDis": 8,
       "imagePaths": [
-        ":/images/FireBall.png"
+        ":/images/IceBall.png"
+      ]
+    },
+    {
+      "bulletID": 3,
+      "width": 20,
+      "height": 20,
+      "moveSpeed": 10,
+      "damageMultiplier": 1.0,
+      "dmoveDis": 8,
+      "imagePaths": [
+        ":/images/tmxz.png"
       ]
     }
   ],
   "npcs": [
     {
       "npcId": 0,
-      "imagePath": "://images/blackcat.png",
+      "imagePath": "://images/transparent.png",
       "width1": 50,
       "height1": 50,
-      "greetingImagePath": "://images/blackcat.png",
+      "greetingImagePath": "://images/transparent.png",
       "width2": 40,
       "height2": 40,
       "pos": [
-        400,
-        400
+        40,
+        40
       ],
       "dhp": 0,
       "ddamage": 0,
@@ -223,15 +904,15 @@
     },
     {
       "npcId": 1,
-      "imagePath": "://images/applecat.png",
+      "imagePath": "://images/npc_1.png",
       "width1": 50,
-      "height1": 50,
-      "greetingImagePath": "://images/applecat.png",
-      "width2": 40,
-      "height2": 40,
+      "height1": 100,
+      "greetingImagePath": "://images/npc_1_greeting.png",
+      "width2": 50,
+      "height2": 100,
       "pos": [
-        700,
-        700
+        500,
+        900
       ],
       "dhp": 1000,
       "ddamage": 0,
@@ -241,75 +922,271 @@
     },
     {
       "npcId": 2,
-      "imagePath": "://images/quickman.png",
+      "imagePath": "://images/npc_1.png",
       "width1": 50,
-      "height1": 50,
-      "greetingImagePath": "://images/quickman.png",
-      "width2": 40,
-      "height2": 40,
+      "height1": 100,
+      "greetingImagePath": "://images/npc_1_greeting.png",
+      "width2": 50,
+      "height2": 100,
       "pos": [
-        100,
+        1500,
         900
       ],
-      "dhp": 0,
-      "ddamage": 5,
+      "dhp": 1000,
+      "ddamage": 0,
       "dattackRange": 0,
-      "dattackCd": 30,
+      "dattackCd": 0,
       "dmoveStep": 0
     },
     {
       "npcId": 3,
-      "imagePath": "://images/happycat.png",
-      "width1": 100,
+      "imagePath": "://images/npc_1.png",
+      "width1": 50,
       "height1": 100,
-      "greetingImagePath": "://images/happycat.png",
-      "width2": 40,
-      "height2": 40,
+      "greetingImagePath": "://images/npc_1_greeting.png",
+      "width2": 50,
+      "height2": 100,
       "pos": [
-        1650,
-        600
+        2500,
+        900
       ],
-      "dhp": 0,
-      "ddamage": 10,
-      "dattackRange": 0,
-      "dattackCd": 0,
-      "dmoveStep": 0
-    },
-    {
-      "npcId": 4,
-      "imagePath": "://images/cat.png",
-      "width1": 50,
-      "height1": 50,
-      "greetingImagePath": "://images/cat.png",
-      "width2": 40,
-      "height2": 40,
-      "pos": [
-        1900,
-        100
-      ],
-      "dhp": 0,
-      "ddamage": 0,
-      "dattackRange": 0,
-      "dattackCd": 50,
-      "dmoveStep": 0
-    },
-    {
-      "npcId": 5,
-      "imagePath": "://images/king.png",
-      "width1": 50,
-      "height1": 50,
-      "greetingImagePath": "://images/king.png",
-      "width2": 40,
-      "height2": 40,
-      "pos": [
-        1500,
-        1500
-      ],
-      "dhp": 0,
+      "dhp": 1000,
       "ddamage": 0,
       "dattackRange": 0,
       "dattackCd": 0,
-      "dmoveStep": 1
+      "dmoveStep": 0
+    }
+  ],
+  "tasks": [
+    {
+      "taskName": "初级目标",
+      "taskDiscrubtion": "清理10只怪",
+      "enemyCnt_target": 10,
+      "enemyCnt_request": 0,
+      "buffs": [
+        {
+          "dhp": 500,
+          "ddamage": 0
+        },
+        {
+          "ddamage": 1
+        },
+        {
+          "bulletData": {
+            "bulletID": 2,
+            "width": 20,
+            "height": 20,
+            "moveSpeed": 10,
+            "damageMultiplier": 1.0,
+            "dmoveDis": 80,
+            "imagePaths": [
+              ":/images/IceBall.png"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "taskName": "消灭敌人",
+      "taskDiscrubtion": "清理大量敌人",
+      "enemyCnt_target": 50,
+      "enemyCnt_request": 5,
+      "buffs": [
+        {
+          "dhp": 500,
+          "ddamage": 0
+        },
+        {},
+        {}
+      ]
+    },
+    {
+      "taskName": "进阶训练",
+      "taskDiscrubtion": "热身结束，清理100个敌人",
+      "enemyCnt_target": 100,
+      "enemyCnt_request": 50,
+      "bossID_target": -1,
+      "bossID_request": -1,
+      "buffs": [
+        {
+          "dhp": 800,
+          "ddamage": 2
+        },
+        {
+          "ddamage": 8
+        },
+        {}
+      ]
+    },
+    {
+      "taskName": "生存挑战 I",
+      "taskDiscrubtion": "敌人变多了，坚持住！",
+      "enemyCnt_target": 150,
+      "enemyCnt_request": 100,
+      "bossID_target": -1,
+      "bossID_request": -1,
+      "buffs": [
+        {
+          "dhp": 1000
+        },
+        {},
+        {}
+      ]
+    },
+    {
+      "taskName": "生存挑战 II",
+      "taskDiscrubtion": "清理200个敌人",
+      "enemyCnt_target": 200,
+      "enemyCnt_request": 150,
+      "bossID_target": -1,
+      "bossID_request": -1,
+      "buffs": [
+        {
+          "ddamage": 15
+        },
+        {
+          "dhp": 1500,
+          "dmoveStep": 1
+        },
+        {}
+      ]
+    },
+    {
+      "taskName": "疯狂杀戮 I",
+      "taskDiscrubtion": "进入节奏，清理300个敌人",
+      "enemyCnt_target": 300,
+      "enemyCnt_request": 200,
+      "bossID_target": -1,
+      "bossID_request": -1,
+      "buffs": [
+        {
+          "dhp": 2000,
+          "ddamage": 5
+        },
+        {
+          "ddamage": 20
+        },
+        {}
+      ]
+    },
+    {
+      "taskName": "疯狂杀戮 II",
+      "taskDiscrubtion": "大杀特杀！目标500个",
+      "enemyCnt_target": 500,
+      "enemyCnt_request": 300,
+      "bossID_target": -1,
+      "bossID_request": -1,
+      "buffs": [
+        {
+          "bulletData": {
+            "bulletID": 0,
+            "width": 30,
+            "height": 30,
+            "moveSpeed": 15,
+            "damageMultiplier": 3.5,
+            "dmoveDis": 6,
+            "imagePaths": [
+              ":/images/FireBall.png"
+            ]
+          }
+        },
+        {
+          "dhp": 3000
+        },
+        {}
+      ]
+    },
+    {
+      "taskName": "无尽猎杀 I",
+      "taskDiscrubtion": "清理600个敌人",
+      "enemyCnt_target": 600,
+      "enemyCnt_request": 500,
+      "bossID_target": -1,
+      "bossID_request": -1,
+      "buffs": [
+        {
+          "ddamage": 30,
+          "dattackCd": -20
+        },
+        {
+          "dhp": 4000
+        },
+        {}
+      ]
+    },
+    {
+      "taskName": "无尽猎杀 II",
+      "taskDiscrubtion": "怪物如潮水般涌来...目标300个",
+      "enemyCnt_target": 700,
+      "enemyCnt_request": 600,
+      "bossID_target": -1,
+      "bossID_request": -1,
+      "buffs": [
+        {
+          "dhp": 5000,
+          "ddamage": 10
+        },
+        {
+          "ddamage": 40,
+          "dmoveStep": 1
+        },
+        {}
+      ]
+    },
+    {
+      "taskName": "梦境扫荡",
+      "taskDiscrubtion": "清理800个敌人，你已势不可挡",
+      "enemyCnt_target": 800,
+      "enemyCnt_request": 700,
+      "bossID_target": -1,
+      "bossID_request": -1,
+      "buffs": [
+        {
+          "dhp": 6000
+        },
+        {
+          "ddamage": 50,
+          "dattackCd": -30
+        },
+        {}
+      ]
+    },
+    {
+      "taskName": "传说之路",
+      "taskDiscrubtion": "清理900个敌人，成为传说",
+      "enemyCnt_target": 900,
+      "enemyCnt_request": 800,
+      "bossID_target": -1,
+      "bossID_request": -1,
+      "buffs": [
+        {
+          "dhp": 8000,
+          "ddamage": 20
+        },
+        {
+          "ddamage": 80
+        },
+        {}
+      ]
+    },
+    {
+      "taskName": "神格证明",
+      "taskDiscrubtion": "最终试炼：清理900个敌人",
+      "enemyCnt_target": 1000,
+      "enemyCnt_request": 900,
+      "bossID_target": -1,
+      "bossID_request": -1,
+      "buffs": [
+        {
+          "dhp": 10000,
+          "ddamage": 100
+        },
+        {
+          "ddamage": 150,
+          "dmoveStep": 2,
+          "dattackCd": -50
+        }
+      ]
     }
   ]
 }

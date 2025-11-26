@@ -260,8 +260,8 @@ void Enemy::avoidOthers(){
             dx /= dist;
             dy /= dist;
 
-            pushX += dx * overlap *0.8f;
-            pushY += dy * overlap *0.8f;
+            pushX += dx * overlap *1.2f;
+            pushY += dy * overlap *1.2f;
         }
     }
     if(checkCollisionObstacle(x+pushX,y+pushY))return;

@@ -47,6 +47,13 @@ GameData* JsonGameLoader::loadGame(const std::string &filename) {
             gameData->npcDatas = parseNpcData(jsonData["npcs"]);
         }
 
+        gameData->bossNum = 1;
+
+        // Parse Task List
+        if (jsonData.contains("tasks") && jsonData["tasks"].is_array()) {
+            gameData->taskList = parseTaskData(jsonData["tasks"]);
+        }
+
         return gameData;
     } catch (const std::exception& e) {
         std::cerr << "Error loading game data: " << e.what() << std::endl;
@@ -226,6 +233,25 @@ MapData JsonGameLoader::parseMapData(const json &map_json) {
     return mapData;
 }
 
+BulletData JsonGameLoader::parseSingleBulletData(const json &bulletItem) {
+    BulletData bulletData{};
+
+    bulletData.bulletID = bulletItem.value("bulletID", 0);
+    bulletData.width = bulletItem.value("width", 20);
+    bulletData.height = bulletItem.value("height", 20);
+    bulletData.damageMultiplier = bulletItem.value("damageMultiplier", 1.0);
+    bulletData.moveSpeed = bulletItem.value("moveSpeed", 10);
+    bulletData.dmoveDis = bulletItem.value("dmoveDis", 80);
+
+    if (bulletItem.contains("imagePaths") && bulletItem["imagePaths"].is_array()) {
+        for (const auto& path : bulletItem["imagePaths"]) {
+            if (path.is_string()) {
+                bulletData.imagePaths.push_back(path);
+            }
+        }
+    }
+    return bulletData;
+}
 std::vector<BulletData> JsonGameLoader::parseBulletData(const json &bullet_json) {
     std::vector<BulletData> bullets;
 
@@ -335,6 +361,63 @@ std::vector<PlotData> * JsonPlotLoader::loadPlot(const std::string& filename) {
         std::cerr << "Error loading plot data: " << e.what() << std::endl;
         return {};
     }
+}
+
+std::vector<TaskData> JsonGameLoader::parseTaskData(const json &task_json) {
+    std::vector<TaskData> tasks;
+
+    for (const auto& item : task_json) {
+        TaskData task;
+
+        // 1. 解析基础文本信息
+        // 注意：保留了 Data.h 中的拼写 "taskDiscrubtion"
+        task.taskName = item.value("taskName", "Unknown Task");
+        task.taskDiscrubtion = item.value("taskDiscrubtion", "");
+
+        // 2. 解析任务目标条件 (注意 Data.h 中要求的默认值 -1)
+        task.bossID_request = item.value("bossID_request", -1);
+        task.bossID_target = item.value("bossID_target", -1);
+
+        task.enemyCnt_request = item.value("enemyCnt_request", -1);
+        task.enemyCnt_target = item.value("enemyCnt_target", 0); // 数量默认可以为0
+
+        task.npcID_request = item.value("npcID_request", -1);
+        task.npcID_target = item.value("npcID_target", -1);
+
+        task.isValid = item.value("isValid", false);
+        task.isComplete = item.value("isComplete", false);
+
+        // 3. 解析 Buffs (数组，最多3个)
+        if (item.contains("buffs") && item["buffs"].is_array()) {
+            int buffIndex = 0;
+            for (const auto& buffItem : item["buffs"]) {
+                if (buffIndex >= 3) break; // 防止越界
+
+                // 解析属性加成
+                task.buffs[buffIndex].dhp = buffItem.value("dhp", 0);
+                task.buffs[buffIndex].ddamage = buffItem.value("ddamage", 0);
+                task.buffs[buffIndex].dattackRange = buffItem.value("dattackRange", 0);
+                task.buffs[buffIndex].dattackCD = buffItem.value("dattackCD", 0);
+                task.buffs[buffIndex].dmoveStep = buffItem.value("dmoveStep", 0);
+
+                // 解析 Buff 附带的子弹
+                // 如果 JSON 中包含 bulletData 对象
+                if (buffItem.contains("bulletData") && buffItem["bulletData"].is_object()) {
+                    // 解析子弹数据并创建新对象
+                    BulletData bd = parseSingleBulletData(buffItem["bulletData"]);
+                    task.buffs[buffIndex].bulletData = new BulletData(bd);
+                } else {
+                    task.buffs[buffIndex].bulletData = nullptr;
+                }
+
+                buffIndex++;
+            }
+        }
+
+        tasks.push_back(task);
+    }
+
+    return tasks;
 }
 
 

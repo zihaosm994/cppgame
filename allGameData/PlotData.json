@@ -2,174 +2,70 @@
   "plot": [
     [
       {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "不知名哈基米：你终于来了，拿上这个吧"
+        "image_path": ":/images/plot1_4.png",
+        "text": "护士：患者齐莫，男，17岁。目前已处于深度昏迷状态，这是本月收治的第十二例“压力型嗜睡症”患者。"
       },
       {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "我： 你认识我吗？为什么要给我这个？"
+        "image_path": ":/images/plot1_1.png",
+        "text": "我：自从嗜睡症爆发以来，就没一天过上好日子，也许某一天睡着的就是我了...（哈欠）"
       },
       {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "不知名哈基米：先拿着吧"
+        "image_path": ":/images/plot1_3.png",
+        "text": "护士：医生...，请不要开这样的玩笑。您可是为数不多能潜入患者梦境进行治疗的“梦境诊疗师”。"
       },
       {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "收下了“小白手套”"
+        "image_path": ":/images/plot1_1.png",
+        "text": "我：患者的情况如何呢？"
       },
       {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "我：欸呦喂小白手套"
+        "image_path": ":/images/plot1_5.png",
+        "text": "护士：正在解析脑波数据……确认病灶源为“学业焦虑”。他的潜意识正在被具象化的试卷、题海等占据。针对由“纸张”和“木材”构成的梦境怪物，建议您本次潜入装配“火弹”。"
+      },
+      {
+        "image_path": ":/images/plot1_2.png",
+        "text": "我没再说话，伸出右手，轻轻按在了少年的额头上。随着指尖触碰，意识瞬间下沉……"
       }
     ],
     [
       {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "苹果猫：真是一对苦命鸳鸯啊"
+        "image_path": ":/images/plot1_3.png",
+        "text": "护士：医生，患者好像进入第二层梦境了！！！！如果继续陷入更深层次的梦境，恐怕就很难再醒过来了！！"
       },
       {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "我：你在看什么？"
+        "image_path": ":/images/plot1_1.png",
+        "text": "我：我在梦境里看到了，那一块地方都是高中习题，我过不去，看来这位患者的压力是从高中时候开始累积的、、、、、"
       },
       {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "苹果猫：多说无益，自己去看"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "获得了“350234”和“350235”"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "我：看了一下还真不是乱画的……真是一对苦命鸳鸯啊"
+        "image_path": ":/images/plot1_2.png",
+        "text": "我：我再试一次"
       }
     ],
     [
       {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "忍者：少基米，我看你哈根惊奇，不如我传你一些忍术如何 "
+        "image_path": ":/images/plot1_4.png",
+        "text": "护士：患者的状况好多了，但似乎依然被噩梦纠缠着，梦中这是...教导主任吗？"
       },
       {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "我：请赐教"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "忍者：看好了"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "忍者：影分身十字斩"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "忍者：岚刀一直切"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "忍者：一刀一刀燃烧刀"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "看完了忍术，你觉得受益匪浅"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "我：握握手，握握双手"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "忍者：握握手，握握双手"
+        "image_path": ":/images/plot1_2.png",
+        "text": "我看看怎么回事。"
       }
     ],
     [
       {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "happy猫：happy~happy~happy~  "
+        "image_path": ":/images/plot1_5.png",
+        "text": "护士：患者已经确定脱离了危险，辛苦了医生！ "
       },
       {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "我：happy~happy~happy~"
+        "image_path": ":/images/plot1_6.png",
+        "text": "护士：似乎在做回忆童年美梦呢，这位少年。"
       },
       {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "happy猫：happy~happy~happy~happy~happy~"
+        "image_path": ":/images/plot1_7.png",
+        "text": "我：等他醒来之后，发现他打败了所有作业和考试，回到了童年的天真，只是一场梦的话，会作何反应呢。"
       },
       {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "我：happy~happy~happy~happy~happy~"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "…………"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "你不自觉地跟着happy猫唱了起来"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "心中涌现出了力量"
-      }
-    ],
-    [
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "河移位猫：何意味？  "
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "我：何意味是什么意思？"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "河移位猫：对"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "我：何意味？"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "河移位猫：何意味？"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "我：何意味？"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "你突然领悟了何意味的意味，获得了“何意味”"
-      }
-    ],
-    [
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "香蕉猫：我最近新学了一个咒语可以增加移速，你想学的话我可以教你"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "我：好啊"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "香蕉猫：哈基米莫那没撸多，阿西嘎哈呀库娜鲁，跟着念一遍"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "我：哈基米莫那没撸多，阿西嘎哈呀库娜鲁"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "河移位猫：何意味？"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "嘴里突然出现了蜂蜜水的味道"
-      },
-      {
-        "image_path": ":/images/plot_2BG.png",
-        "text": "你感觉自己的身体更轻便了"
+        "image_path": ":/images/plot1_8.png",
+        "text": "护士：医生..."
       }
     ]
   ]

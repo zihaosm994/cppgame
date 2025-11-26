@@ -96,7 +96,7 @@ void GameWindow::setGameData(GameData *_data)
         showWarning = true;
         warningTimer->start(5000);
     });
-    powerEnemy->start(60000);
+    powerEnemy->start(15000);
     disconnect(movementTimer, nullptr, this, nullptr);
     connect(movementTimer, &QTimer::timeout, this, [this]()
             { handleMovement(gameData->playerData.moveStep, gameData->playerData.moveStep * 7 / 10); });
@@ -823,7 +823,7 @@ bool GameWindow::handleNPCGreeting(int id){
         }
     }
     if(isGreeting[id]==true)return false;
-    if(keyPressed.contains(Qt::Key_Enter)){
+    if(id==0||keyPressed.contains(Qt::Key_Enter)){
         if(!ifPlot){
             showWarning=true;
             warningText = "前置剧情未触发！";
@@ -834,6 +834,8 @@ bool GameWindow::handleNPCGreeting(int id){
     player->upgrade(npc.dhp,npc.ddamage,npc.dattackRange,npc.dattackCD,npc.dmoveStep,npc.bulletData);
     isGreeting[id]=true;
     stopGame();
+    if(id == 1)player->setPosition(1500,100);
+    else if(id == 2)player->setPosition(2500,100);
     return true;
     }
     return false;
@@ -953,9 +955,7 @@ void GameWindow::checkTask() {
             if (task.bossID_request != -1) {
                 // 安全计算 Boss 索引
                 int bossStartIndex = gameData->enemySpawnConfigs.size() - bossNum;
-                // 假设 bossID 对应的是 enemyID，我们需要找到对应这个 enemyID 的 boss 实例
-                // 这里简化逻辑：假设 bossList 是按生成顺序存储的，且对应配置文件的后几个
-                int bossIndexInList = task.bossID_request - bossStartIndex; // 这种计算依赖于 ID 和 数组顺序完全对应，比较脆弱
+                int bossIndexInList = task.bossID_request - bossStartIndex;
 
                 // 更稳妥的方式：遍历 bossList 找对应的 enemyID
                 bool bossFoundAndDead = false;
@@ -990,7 +990,6 @@ void GameWindow::checkTask() {
         }
 
         // 2. 检查任务完成条件 (isComplete)
-        // 注意：这里用 else，表示 isValid 变为 true 的下一帧才会检查完成，或者如果逻辑允许当帧检查也可以去掉 else
         else {
             bool targetBossMet = true;
             bool targetNpcMet = true;
@@ -1020,11 +1019,6 @@ void GameWindow::checkTask() {
                     targetNpcMet = false;
                 }
             }
-
-            // === 检查杀怪数量目标 ===
-            // 注意：你的逻辑是检查总死亡数，而不是特定怪物的死亡数
-            // 如果任务要求杀“5只哥布林”，这里只检查了“死了5个任意怪”
-            // 暂时按你的原逻辑保留
             if (enemyDeadList.size() < task.enemyCnt_target) {
                 targetEnemyMet = false;
             }

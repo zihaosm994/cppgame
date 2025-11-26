@@ -8,7 +8,7 @@ MyApp::MyApp(QWidget *parent)
     ui(new Ui_MyApp)
 {
     ui->setupUi(this);
-    this->setWindowTitle("??????");
+    this->setWindowTitle("梦境诊疗室");
     this->setMinimumSize(800,600);
     stack =new QStackedWidget(this);
     setCentralWidget(stack);
@@ -30,7 +30,7 @@ MyApp::MyApp(QWidget *parent)
     });
     stack->addWidget(game);
     connect(menu,&MainMenu::startGame,this,[=](){
-        game->setGameData(TestData::createDefaultGameData()); //JsonGameLoader::loadGame(":/allGameData/GameData.json")
+        game->setGameData(JsonGameLoader::loadGame(":/allGameData/GameData.json")); //JsonGameLoader::loadGame(":/allGameData/GameData.json")
         stack->setCurrentWidget(game);
         game->setFocus();
     });
@@ -103,7 +103,7 @@ void MainMenu:: createButtons(){
         switch (config.first)
         {
         case StartGame:
-            button->setText("开始冒险");
+            button->setText("开始诊疗");
             connect(button, &QPushButton::clicked, this, [=](){
                 emit startGame();
             });

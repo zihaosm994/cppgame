@@ -26,6 +26,7 @@ private:
     static std::vector<BulletData> parseBulletData(const json& bullet_json);
     static BulletData parseSingleBulletData(const json& bullet_json);
     static std::vector<npcData> parseNpcData(const json& npc_json);
+    static std::vector<TaskData> parseTaskData(const json &task_json);
 };
 
 // Add this to JsonLoader.h inside the JsonPlotLoader class

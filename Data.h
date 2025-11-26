@@ -129,7 +129,7 @@ struct TaskData{
     // 三个选项，每个选项对应一套属性加成
     Buff buffs[3];
 
-    bool isValid = true;
+    bool isValid = false;
     bool isComplete = false;
 
     // 任务目标条件
